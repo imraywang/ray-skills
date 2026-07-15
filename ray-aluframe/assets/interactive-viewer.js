@@ -92,6 +92,9 @@
   const pickMeshes = [];
   const hardwarePickMeshes = [];
   const hardwareUnits = [];
+  const hardwareEntries = [];
+  const hardwareMarker = createHardwareMarker();
+  hardwareRoot.add(hardwareMarker);
   const steps = [
     { name: '完整结构', copy: '查看所有型材、板材和五金。' },
     { name: '第 1 步 · 底部框架', copy: '先拼装底部横梁，测量两条对角线并校方。' },
@@ -185,8 +188,50 @@
     parts.forEach((part) => {
       if (!part?.isMesh) return;
       part.userData.hardwareInfo = info;
+      part.userData.hardwareMaterial = part.material;
+      part.userData.hardwareHitbox = part.material === materials.pick;
       hardwarePickMeshes.push(part);
     });
+    hardwareEntries.push({ info, parts });
+  }
+
+  function createHardwareMarker() {
+    const markerCanvas = document.createElement('canvas');
+    markerCanvas.width = markerCanvas.height = 128;
+    const context = markerCanvas.getContext('2d');
+    context.strokeStyle = '#ff7a1a';
+    context.lineWidth = 10;
+    context.beginPath();
+    context.arc(64, 64, 45, 0, Math.PI * 2);
+    context.stroke();
+    context.fillStyle = '#ff7a1a';
+    context.beginPath();
+    context.arc(64, 64, 8, 0, Math.PI * 2);
+    context.fill();
+    const texture = new THREE.CanvasTexture(markerCanvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const marker = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
+    marker.scale.set(105, 105, 1);
+    marker.renderOrder = 30;
+    marker.visible = false;
+    return marker;
+  }
+
+  function updateHardwareMarker() {
+    const entry = hardwareEntries.find(({ info }) => info.id === state.selectedHardware?.id);
+    if (!entry || state.selectedHardware?.groupCatalogId) {
+      hardwareMarker.visible = false;
+      return;
+    }
+    scene.updateMatrixWorld(true);
+    const box = new THREE.Box3();
+    entry.parts.filter((part) => !part.userData.hardwareHitbox).forEach((part) => box.expandByObject(part));
+    if (box.isEmpty()) {
+      hardwareMarker.visible = false;
+      return;
+    }
+    box.getCenter(hardwareMarker.position);
+    hardwareMarker.visible = true;
   }
 
   function panelBounds(panel) {
@@ -824,6 +869,14 @@
       edges.material = state.renderMode === 'realistic' ? materials.edge : materials.edgeLight;
       edges.visible = !dimmed || highlighted;
     });
+    hardwareEntries.forEach(({ info, parts }) => {
+      const selected = state.selectedHardware?.id === info.id && !state.selectedHardware?.groupCatalogId;
+      parts.forEach((part) => {
+        if (!part?.isMesh || part.userData.hardwareHitbox) return;
+        part.material = selected ? materials.selected : part.userData.hardwareMaterial;
+      });
+    });
+    updateHardwareMarker();
     panelRoot.visible = state.showPanels && ![1, 2, 3].includes(state.step);
     hardwareRoot.visible = state.showHardware && ![1, 2, 3].includes(state.step);
     dimensionRoot.visible = state.showDimensions;
@@ -850,13 +903,24 @@
     const root = document.getElementById('selection');
     if (state.selectedHardware) {
       const hardware = state.selectedHardware;
+      const locationContent = hardware.groupCatalogId
+        ? `<button class="inline-action" id="show-hardware-locations">查看 ${hardware.quantity} 个安装位置</button>`
+        : `${hardware.location}<span class="location-note">已在模型中用橙色标出</span>`;
       root.innerHTML = `<p class="selection-kicker">当前五金</p><h2>${hardware.name}</h2><dl class="facts">
         <div class="fact"><dt>目录编号</dt><dd>${hardware.catalogId}</dd></div>
-        <div class="fact"><dt>所在位置</dt><dd>${hardware.location}</dd></div>
+        <div class="fact"><dt>所在位置</dt><dd>${locationContent}</dd></div>
         <div class="fact"><dt>当前件数</dt><dd>${hardware.quantity}</dd></div>
         <div class="fact"><dt>适配规格</dt><dd>${hardware.specification}</dd></div>
         <div class="fact"><dt>紧固件</dt><dd>${hardware.fasteners}</dd></div>
       </dl>`;
+      const locationButton = root.querySelector('#show-hardware-locations');
+      if (locationButton) {
+        locationButton.onclick = () => {
+          setTab('hardware');
+          renderHardwareList();
+          requestAnimationFrame(() => document.querySelector('.hardware-locations')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+        };
+      }
       return;
     }
     const member = members.find((item) => item.id === state.selected);
@@ -879,6 +943,7 @@
   function selectMember(id) {
     state.selected = id;
     state.selectedHardware = null;
+    hardwareMarker.visible = false;
     state.hoverIds.clear();
     renderSelection();
     renderMembers();
@@ -888,9 +953,16 @@
   function selectHardware(info) {
     state.selected = null;
     state.selectedHardware = info;
+    state.showHardware = true;
+    document.getElementById('show-hardware').checked = true;
+    if ([1, 2, 3].includes(state.step)) {
+      state.step = 0;
+      renderAssembly();
+    }
     state.hoverIds.clear();
     renderSelection();
     renderMembers();
+    renderHardwareList();
     applyAppearance();
   }
 
@@ -922,16 +994,24 @@
       <div class="list-row"><span class="list-main"><span class="list-name">槽 8 M6 后装螺母</span><span class="list-sub">与 M6×12 一一配套</span></span><span class="list-value">× ${m6Total}</span></div>
       <div class="list-row"><span class="list-main"><span class="list-name">4×12 木螺钉</span><span class="list-sub">每个层板小角码 1 颗</span></span><span class="list-value">× ${shelfBrackets}</span></div>
     </div>`;
-    root.innerHTML = '<p class="section-title">当前方案五金</p><div class="bom-list">' + rows.map(({ item, count }, index) => `<button class="list-row" data-hardware="${index}"><span class="list-main"><span class="list-name">${item.name}</span><span class="list-sub">${item.catalogId} · ${item.fasteners}</span></span><span class="list-value">× ${count}</span></button>`).join('') + '</div>' + fastenerSummary;
+    const selectedCatalogId = state.selectedHardware?.groupCatalogId || state.selectedHardware?.catalogId;
+    const selectedUnits = selectedCatalogId ? hardwareUnits.filter((item) => item.catalogId === selectedCatalogId) : [];
+    const locationSection = selectedUnits.length ? `<section class="hardware-locations"><p class="section-title">安装位置 · ${selectedUnits[0].name}</p><div class="member-list">${selectedUnits.map((item, index) => `<button class="list-row ${state.selectedHardware?.id === item.id && !state.selectedHardware?.groupCatalogId ? 'active' : ''}" data-hardware-location="${index}"><span class="list-main"><span class="list-name">位置 ${index + 1}</span><span class="list-sub">${item.location}</span></span><span class="list-value">定位</span></button>`).join('')}</div></section>` : '';
+    root.innerHTML = '<p class="section-title">当前方案五金</p><div class="bom-list">' + rows.map(({ item, count }, index) => `<button class="list-row ${selectedCatalogId === item.catalogId ? 'active' : ''}" data-hardware="${index}"><span class="list-main"><span class="list-name">${item.name}</span><span class="list-sub">${item.catalogId} · ${item.fasteners}</span></span><span class="list-value">× ${count}</span></button>`).join('') + '</div>' + locationSection + fastenerSummary;
     root.querySelectorAll('[data-hardware]').forEach((button) => {
       button.onclick = () => {
         const group = rows[Number(button.dataset.hardware)];
         selectHardware({
           ...group.item,
+          id: `GROUP-${group.item.catalogId}`,
           quantity: group.count,
-          location: `全架共 ${group.count} 处；模型中可点击单个位置查看`,
+          location: `全架共 ${group.count} 处`,
+          groupCatalogId: group.item.catalogId,
         });
       };
+    });
+    root.querySelectorAll('[data-hardware-location]').forEach((button) => {
+      button.onclick = () => selectHardware({ ...selectedUnits[Number(button.dataset.hardwareLocation)], groupCatalogId: null });
     });
   }
 

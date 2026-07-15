@@ -160,6 +160,11 @@ canvas.dragging {{ cursor: grabbing; }}
 .facts {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin: 16px 0 0; }}
 .fact dt {{ color: var(--muted); font-size: .75rem; }}
 .fact dd {{ margin: 2px 0 0; font-weight: 700; font-variant-numeric: tabular-nums; }}
+.inline-action {{ width: 100%; border: 1px solid var(--blue); background: color-mix(in oklch,var(--blue) 9%,var(--surface)); color: var(--blue-deep); padding: 8px 10px; text-align: left; cursor: pointer; font: inherit; font-weight: 800; }}
+.inline-action:hover {{ background: color-mix(in oklch,var(--blue) 16%,var(--surface)); }}
+.inline-action:focus-visible {{ outline: 3px solid color-mix(in oklch,var(--orange) 55%,transparent); outline-offset: 2px; }}
+.location-note {{ display: block; margin-top: 5px; color: var(--orange); font-size: .72rem; font-weight: 800; }}
+.hardware-locations {{ margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }}
 .tabs {{ min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr); }}
 .tablist {{ display: grid; grid-template-columns: repeat(5,1fr); border-bottom: 1px solid var(--line); }}
 .tab {{ min-height: 48px; border: 0; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-weight: 700; color: var(--muted); }}
