@@ -150,7 +150,12 @@
       structureBeam: new THREE.MeshStandardMaterial({ color: 0x2c86bd, metalness: 0.16, roughness: 0.52 }),
       edge: new THREE.LineBasicMaterial({ color: 0x1a2024, transparent: true, opacity: 0.34 }),
       edgeLight: new THREE.LineBasicMaterial({ color: 0xd8e0e3, transparent: true, opacity: 0.32 }),
-      bracket: new THREE.MeshStandardMaterial({ color: 0x9da4a7, metalness: 0.76, roughness: 0.32 }),
+      bracket: new THREE.MeshPhysicalMaterial({
+        color: 0xb9c9be,
+        metalness: 0.74,
+        roughness: 0.25,
+        clearcoat: 0.24,
+      }),
       bolt: new THREE.MeshStandardMaterial({ color: 0x42494d, metalness: 0.9, roughness: 0.24 }),
       foot: new THREE.MeshStandardMaterial({ color: 0x343a3e, metalness: 0.72, roughness: 0.38 }),
       rubber: new THREE.MeshStandardMaterial({ color: 0x181a1c, metalness: 0.05, roughness: 0.86 }),
@@ -405,29 +410,42 @@
   function createBracket(joint) {
     const directions = uniqueHorizontalDirections(joint);
     if (!directions.length) return;
-    directions.slice(0, 2).forEach((direction, index) => {
+    const origin = toWorld(joint.at);
+    const requested = THREE.MathUtils.clamp(Math.round(Number(joint.connector?.qty || directions.length)), 1, 8);
+    for (let index = 0; index < requested; index += 1) {
+      const direction = directions[index % directions.length];
       const group = new THREE.Group();
       const yaw = Math.atan2(-direction.z, direction.x);
       group.rotation.y = yaw;
-      group.position.copy(toWorld(joint.at));
-      group.position.y += index ? -2 : 2;
-      const horizontal = new THREE.Mesh(new THREE.BoxGeometry(25, 4, 22), materials.bracket);
-      horizontal.position.set(12.5, 2, 0);
-      const vertical = new THREE.Mesh(new THREE.BoxGeometry(4, 25, 22), materials.bracket);
-      vertical.position.set(2, 12.5, 0);
-      const boltGeometry = new THREE.CylinderGeometry(3.4, 3.4, 2.8, 12);
+      const normal = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
+      let visibleSign;
+      if (Math.abs(normal.z) > 0.25) {
+        visibleSign = normal.z > 0 ? -1 : 1;
+      } else {
+        const outwardX = origin.x < cameraTarget.x ? -1 : 1;
+        visibleSign = normal.x * outwardX >= 0 ? 1 : -1;
+      }
+      const sideSign = Math.floor(index / directions.length) % 2 ? -visibleSign : visibleSign;
+      group.position.copy(origin).addScaledVector(normal, sideSign * 18);
+      group.position.y += 1.5;
+      const horizontal = new THREE.Mesh(new THREE.BoxGeometry(30, 5, 26), materials.bracket);
+      horizontal.position.set(15, 2.5, 0);
+      const vertical = new THREE.Mesh(new THREE.BoxGeometry(5, 30, 26), materials.bracket);
+      vertical.position.set(2.5, 15, 0);
+      const boltGeometry = new THREE.CylinderGeometry(3.7, 3.7, 3.2, 12);
       const boltA = new THREE.Mesh(boltGeometry, materials.bolt);
       boltA.rotation.x = Math.PI / 2;
-      boltA.position.set(14, 4.3, -11.5);
+      boltA.position.set(16, 5.2, sideSign * 14.5);
       const boltB = boltA.clone();
-      boltB.position.set(4.3, 15, -11.5);
+      boltB.position.set(5.2, 17, sideSign * 14.5);
       [horizontal, vertical, boltA, boltB].forEach((part) => {
         part.castShadow = true;
         part.receiveShadow = true;
       });
       group.add(horizontal, vertical, boltA, boltB);
+      group.userData = { kind: 'connector', jointId: joint.id };
       hardwareRoot.add(group);
-    });
+    }
   }
 
   function createFoot(foot) {
