@@ -8,6 +8,7 @@
   const payload = JSON.parse(document.getElementById('payload').textContent);
   const design = payload.design;
   const members = design.members || [];
+  const accessories = design.accessories || [];
   const profiles = Object.fromEntries((design.profiles || []).map((profile) => [profile.id, profile]));
   const catalogProducts = Object.fromEntries((payload.catalog?.products || []).map((product) => [product.id, product]));
   const defaultAngleSpec = catalogProducts['RAF-C-ANGLE-30-8'] || {
@@ -58,6 +59,7 @@
     pitch: 0.34,
     distance: Math.max(2500, span * 1.12),
     selected: null,
+    selectedHardware: null,
     hoverIds: new Set(),
     dragging: false,
     last: null,
@@ -88,6 +90,8 @@
   const geometryCache = new Map();
   const memberObjects = new Map();
   const pickMeshes = [];
+  const hardwarePickMeshes = [];
+  const hardwareUnits = [];
   const steps = [
     { name: '完整结构', copy: '查看所有型材、板材和五金。' },
     { name: '第 1 步 · 底部框架', copy: '先拼装底部横梁，测量两条对角线并校方。' },
@@ -167,7 +171,46 @@
       bolt: new THREE.MeshStandardMaterial({ color: 0x42494d, metalness: 0.9, roughness: 0.24 }),
       foot: new THREE.MeshStandardMaterial({ color: 0x343a3e, metalness: 0.72, roughness: 0.38 }),
       rubber: new THREE.MeshStandardMaterial({ color: 0x181a1c, metalness: 0.05, roughness: 0.86 }),
+      pick: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false }),
     };
+  }
+
+  function accessoryQuantity(category, fallback = 0) {
+    const item = accessories.find((accessory) => accessory.category === category);
+    return Math.max(0, Math.round(Number(item?.qty ?? fallback)));
+  }
+
+  function registerHardware(parts, info) {
+    hardwareUnits.push(info);
+    parts.forEach((part) => {
+      if (!part?.isMesh) return;
+      part.userData.hardwareInfo = info;
+      hardwarePickMeshes.push(part);
+    });
+  }
+
+  function panelBounds(panel) {
+    return [0, 1, 2].map((axis) => {
+      const values = panel.corners.map((point) => Number(point[axis]));
+      return [Math.min(...values), Math.max(...values)];
+    });
+  }
+
+  function allocateByWeight(items, total, weightFor) {
+    if (!items.length || total <= 0) return [];
+    const weights = items.map((item) => Math.max(0, Number(weightFor(item)) || 0));
+    const weightTotal = weights.reduce((sum, weight) => sum + weight, 0) || items.length;
+    const raw = items.map((item, index) => total * (weights[index] || 1) / weightTotal);
+    const counts = raw.map(Math.floor);
+    let remaining = total - counts.reduce((sum, count) => sum + count, 0);
+    raw.map((value, index) => ({ index, remainder: value - counts[index] }))
+      .sort((a, b) => b.remainder - a.remainder || a.index - b.index)
+      .forEach(({ index }) => {
+        if (remaining <= 0) return;
+        counts[index] += 1;
+        remaining -= 1;
+      });
+    return counts;
   }
 
   function setupLighting() {
@@ -479,45 +522,223 @@
         verticalBolt.rotation.z = Math.PI / 2;
         verticalBolt.position.set(thickness + 2.1, verticalWasher.position.y, 0);
 
-        const parts = [horizontalPlate, verticalPlate, ribA, ribB, horizontalWasher, horizontalBolt, verticalWasher, verticalBolt];
+        const horizontalNut = new THREE.Mesh(new THREE.BoxGeometry(15, 2.6, 8), materials.bolt);
+        horizontalNut.position.set(horizontalWasher.position.x, -1.8, 0);
+        const verticalNut = new THREE.Mesh(new THREE.BoxGeometry(2.6, 15, 8), materials.bolt);
+        verticalNut.position.set(-1.8, verticalWasher.position.y, 0);
+
+        const parts = [horizontalPlate, verticalPlate, ribA, ribB, horizontalWasher, horizontalBolt, verticalWasher, verticalBolt, horizontalNut, verticalNut];
         parts.forEach((part) => {
           part.castShadow = true;
           part.receiveShadow = true;
         });
-        group.add(...parts);
+        const hitbox = new THREE.Mesh(new THREE.BoxGeometry(Math.max(54, armA), Math.max(54, armB), width + 8), materials.pick);
+        hitbox.position.set(armA / 2, armB / 2, 0);
+        group.add(...parts, hitbox);
         group.userData = {
           kind: 'connector',
           jointId: joint.id,
           memberId: member.id,
           catalogId: 'RAF-C-ANGLE-30-8',
         };
+        registerHardware([...parts, hitbox], {
+          id: `ANGLE-${joint.id}-${member.id}-${verticalSign}`,
+          catalogId: 'RAF-C-ANGLE-30-8',
+          name: '30 系槽 8 外露直角角码',
+          location: `节点 ${joint.id} · ${member.id}`,
+          quantity: 1,
+          specification: '30 mm 宽 · 50×50 mm · 厚 4 mm · 孔径 6.2 mm',
+          fasteners: '每只：M6×12 螺栓 2 + 槽8 M6后装螺母 2',
+        });
         hardwareRoot.add(group);
       });
+    });
+  }
+
+  function createShelfBracket(panel, x, designY, inwardSign, index) {
+    const axes = panelBounds(panel);
+    const shelfY = (axes[2][0] + axes[2][1]) / 2;
+    const group = new THREE.Group();
+    group.position.set(x, shelfY - 9.5, designY + inwardSign * 16);
+
+    const horizontalPlate = new THREE.Mesh(new THREE.BoxGeometry(22, 3, 18), materials.bracket);
+    horizontalPlate.position.z = inwardSign * 8;
+    const verticalPlate = new THREE.Mesh(new THREE.BoxGeometry(22, 18, 3), materials.bracket);
+    verticalPlate.position.set(0, -7.5, 0);
+
+    const boardWasher = new THREE.Mesh(new THREE.CylinderGeometry(4.4, 4.4, 1, 16), materials.bracket);
+    boardWasher.position.set(0, 2, inwardSign * 8);
+    const boardScrew = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 2.8, 3.2, 12), materials.bolt);
+    boardScrew.position.set(0, 3.4, inwardSign * 8);
+
+    const profileWasher = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.4, 1.1, 18), materials.bracket);
+    profileWasher.rotation.x = Math.PI / 2;
+    profileWasher.position.set(0, -7.5, inwardSign * 2.1);
+    const profileBolt = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 3.2, 16), materials.bolt);
+    profileBolt.rotation.x = Math.PI / 2;
+    profileBolt.position.set(0, -7.5, inwardSign * 3.7);
+    const tNut = new THREE.Mesh(new THREE.BoxGeometry(15, 8, 2.8), materials.bolt);
+    tNut.position.set(0, -7.5, -inwardSign * 2.6);
+
+    const parts = [horizontalPlate, verticalPlate, boardWasher, boardScrew, profileWasher, profileBolt, tNut];
+    parts.forEach((part) => { part.castShadow = true; part.receiveShadow = true; });
+    const hitbox = new THREE.Mesh(new THREE.BoxGeometry(30, 28, 34), materials.pick);
+    hitbox.position.set(0, -4, inwardSign * 5);
+    group.add(...parts, hitbox);
+    registerHardware([...parts, hitbox], {
+      id: `SHELF-BRACKET-${panel.id}-${index + 1}`,
+      catalogId: 'RAF-P-SHELF-BRACKET-30',
+      name: '30 系层板底部小角码',
+      location: `${panel.id} · 固定点 ${index + 1}`,
+      quantity: 1,
+      specification: '适配 30 系槽 8；木层板厚度至少 15 mm',
+      fasteners: 'M6×12 + 槽8 M6后装螺母；4×12 木螺钉',
+    });
+    hardwareRoot.add(group);
+  }
+
+  function buildShelfBrackets() {
+    const shelves = (design.visuals || []).filter((visual) => {
+      if (visual.type !== 'panel' || !visual.corners?.length) return false;
+      const axes = panelBounds(visual);
+      return axes[2][1] - axes[2][0] < 1;
+    });
+    const target = accessoryQuantity('shelf_fastener', shelves.length * 4);
+    const counts = allocateByWeight(shelves, target, () => 1);
+    shelves.forEach((panel, panelIndex) => {
+      const axes = panelBounds(panel);
+      const count = counts[panelIndex] || 0;
+      const frontCount = Math.ceil(count / 2);
+      const rearCount = Math.floor(count / 2);
+      const addSide = (sideCount, designY, inwardSign, offset) => {
+        for (let index = 0; index < sideCount; index += 1) {
+          const fraction = (index + 1) / (sideCount + 1);
+          const x = axes[0][0] + 45 + fraction * Math.max(0, axes[0][1] - axes[0][0] - 90);
+          createShelfBracket(panel, x, designY, inwardSign, offset + index);
+        }
+      };
+      addSide(frontCount, axes[1][0], 1, 0);
+      addSide(rearCount, axes[1][1], -1, frontCount);
+    });
+  }
+
+  function perimeterPoint(axes, fraction) {
+    const width = axes[0][1] - axes[0][0];
+    const height = axes[2][1] - axes[2][0];
+    const perimeter = 2 * (width + height);
+    let distance = ((fraction % 1) + 1) % 1 * perimeter;
+    if (distance < width) return { x: axes[0][0] + distance, z: axes[2][0], edge: 'bottom' };
+    distance -= width;
+    if (distance < height) return { x: axes[0][1], z: axes[2][0] + distance, edge: 'right' };
+    distance -= height;
+    if (distance < width) return { x: axes[0][1] - distance, z: axes[2][1], edge: 'top' };
+    distance -= width;
+    return { x: axes[0][0], z: axes[2][1] - distance, edge: 'left' };
+  }
+
+  function createPanelClip(panel, point, designY, index) {
+    const group = new THREE.Group();
+    group.position.set(point.x, point.z, designY - 8);
+    if (point.edge === 'left' || point.edge === 'right') group.rotation.z = Math.PI / 2;
+
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(24, 20, 3), materials.bracket);
+    const returnLip = new THREE.Mesh(new THREE.BoxGeometry(5, 20, 7), materials.bracket);
+    returnLip.position.set(point.edge === 'top' || point.edge === 'right' ? -9.5 : 9.5, 0, 3.2);
+    const washer = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.4, 1.1, 18), materials.bracket);
+    washer.rotation.x = Math.PI / 2;
+    washer.position.z = -2.1;
+    const bolt = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 3.2, 16), materials.bolt);
+    bolt.rotation.x = Math.PI / 2;
+    bolt.position.z = -3.7;
+    const tNut = new THREE.Mesh(new THREE.BoxGeometry(15, 8, 2.8), materials.bolt);
+    tNut.position.z = 2.7;
+
+    const parts = [plate, returnLip, washer, bolt, tNut];
+    parts.forEach((part) => { part.castShadow = true; part.receiveShadow = true; });
+    const hitbox = new THREE.Mesh(new THREE.BoxGeometry(32, 28, 18), materials.pick);
+    group.add(...parts, hitbox);
+    registerHardware([...parts, hitbox], {
+      id: `PANEL-CLIP-${panel.id}-${index + 1}`,
+      catalogId: 'RAF-P-PANEL-CLIP-30',
+      name: '30 系后装面板夹',
+      location: `${panel.id} · ${point.edge} 边固定点 ${index + 1}`,
+      quantity: 1,
+      specification: '适配 30 系槽 8；夹持板厚 3–10 mm',
+      fasteners: 'M6×12 + 槽8 M6后装螺母；较厚背板需另选固定方式',
+    });
+    hardwareRoot.add(group);
+  }
+
+  function buildPanelClips() {
+    const panels = (design.visuals || []).filter((visual) => {
+      if (visual.type !== 'panel' || !visual.corners?.length) return false;
+      const axes = panelBounds(visual);
+      return axes[1][1] - axes[1][0] < 1 && axes[2][1] - axes[2][0] > 1;
+    });
+    const target = accessoryQuantity('panel_fastener', panels.length * 8);
+    const counts = allocateByWeight(panels, target, (panel) => {
+      const axes = panelBounds(panel);
+      return 2 * ((axes[0][1] - axes[0][0]) + (axes[2][1] - axes[2][0]));
+    });
+    panels.forEach((panel, panelIndex) => {
+      const axes = panelBounds(panel);
+      const count = counts[panelIndex] || 0;
+      const designY = (axes[1][0] + axes[1][1]) / 2;
+      for (let index = 0; index < count; index += 1) {
+        createPanelClip(panel, perimeterPoint(axes, (index + 0.5) / count), designY, index);
+      }
     });
   }
 
   function createFoot(foot) {
     const origin = toWorld(foot.at);
     const stem = Number(foot.stem_mm || 35);
-    const radius = Number(foot.pad_diameter_mm || 44) / 2;
+    const radius = Number(catalogProducts['RAF-A-FOOT-PLATE-30']?.foot_diameter_mm || foot.pad_diameter_mm || 50) / 2;
     const group = new THREE.Group();
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(50, 5, 50), materials.bracket);
+    plate.position.y = -2.5;
     const rod = new THREE.Mesh(new THREE.CylinderGeometry(3.8, 3.8, stem, 16), materials.bolt);
-    rod.position.y = -stem / 2;
+    rod.position.y = -stem / 2 - 4;
     const nut = new THREE.Mesh(new THREE.CylinderGeometry(8.5, 8.5, 6, 6), materials.bracket);
-    nut.position.y = -6;
+    nut.position.y = -9;
     const pad = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius * 0.94, 7, 28), materials.foot);
-    pad.position.y = -stem + 1;
+    pad.position.y = -stem - 3;
     const rubber = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.96, radius * 0.96, 2.4, 28), materials.rubber);
-    rubber.position.y = -stem - 3.5;
-    [rod, nut, pad, rubber].forEach((part) => { part.castShadow = true; part.receiveShadow = true; });
-    group.add(rod, nut, pad, rubber);
+    rubber.position.y = -stem - 7.7;
+    const plateBolts = [[-15, -15], [-15, 15], [15, -15], [15, 15]].map(([x, z]) => {
+      const bolt = new THREE.Mesh(new THREE.CylinderGeometry(3.7, 3.7, 2.2, 14), materials.bolt);
+      bolt.position.set(x, 0.8, z);
+      return bolt;
+    });
+    const parts = [plate, rod, nut, pad, rubber, ...plateBolts];
+    parts.forEach((part) => { part.castShadow = true; part.receiveShadow = true; });
+    const hitbox = new THREE.Mesh(new THREE.BoxGeometry(58, stem + 18, 58), materials.pick);
+    hitbox.position.y = -(stem + 8) / 2;
+    group.add(...parts, hitbox);
     group.position.copy(origin);
+    registerHardware([...parts, hitbox], {
+      id: `FOOT-${foot.at.join('-')}`,
+      catalogId: 'RAF-A-FOOT-PLATE-30',
+      name: '30 系底脚连接板 + M10 调节脚',
+      location: `立柱底部 ${foot.at.join(' / ')} mm`,
+      quantity: 1,
+      specification: `M10 调节杆 · 脚垫直径 ${radius * 2} mm`,
+      fasteners: '底脚连接板安装方式需随供应商套装确认',
+    });
     hardwareRoot.add(group);
   }
 
   function buildHardware() {
     (design.joints || []).forEach(createBracket);
+    buildShelfBrackets();
+    buildPanelClips();
     (design.visuals || []).filter((visual) => visual.type === 'leveling_foot').forEach(createFoot);
+    const hardwareCounts = hardwareUnits.reduce((counts, item) => {
+      counts[item.catalogId] = (counts[item.catalogId] || 0) + Number(item.quantity || 1);
+      return counts;
+    }, {});
+    window.__rayAluframeDebug = { hardwareUnits, hardwareCounts };
+    canvas.dataset.hardwareCounts = JSON.stringify(hardwareCounts);
   }
 
   function makeLabelSprite(text, color = '#d6ff59') {
@@ -618,6 +839,7 @@
       .map((text) => `<span class="dimension">${text}</span>`).join('');
     renderSelection();
     renderMembers();
+    renderHardwareList();
     renderBom();
     renderAssembly();
     renderIssues();
@@ -626,9 +848,20 @@
 
   function renderSelection() {
     const root = document.getElementById('selection');
+    if (state.selectedHardware) {
+      const hardware = state.selectedHardware;
+      root.innerHTML = `<p class="selection-kicker">当前五金</p><h2>${hardware.name}</h2><dl class="facts">
+        <div class="fact"><dt>目录编号</dt><dd>${hardware.catalogId}</dd></div>
+        <div class="fact"><dt>所在位置</dt><dd>${hardware.location}</dd></div>
+        <div class="fact"><dt>当前件数</dt><dd>${hardware.quantity}</dd></div>
+        <div class="fact"><dt>适配规格</dt><dd>${hardware.specification}</dd></div>
+        <div class="fact"><dt>紧固件</dt><dd>${hardware.fasteners}</dd></div>
+      </dl>`;
+      return;
+    }
     const member = members.find((item) => item.id === state.selected);
     if (!member) {
-      root.innerHTML = '<p class="selection-kicker">当前选择</p><h2>检查结构</h2><p class="selection-empty">点击模型中的型材，查看长度、规格和连接信息。</p>';
+      root.innerHTML = '<p class="selection-kicker">当前选择</p><h2>检查结构</h2><p class="selection-empty">点击模型中的型材或五金，查看对应规格和安装信息。</p>';
       return;
     }
     const profile = profiles[member.profile_id] || {};
@@ -645,6 +878,16 @@
 
   function selectMember(id) {
     state.selected = id;
+    state.selectedHardware = null;
+    state.hoverIds.clear();
+    renderSelection();
+    renderMembers();
+    applyAppearance();
+  }
+
+  function selectHardware(info) {
+    state.selected = null;
+    state.selectedHardware = info;
     state.hoverIds.clear();
     renderSelection();
     renderMembers();
@@ -661,6 +904,37 @@
     });
   }
 
+  function renderHardwareList() {
+    const root = document.getElementById('hardware-panel');
+    const groups = new Map();
+    hardwareUnits.forEach((item) => {
+      if (!groups.has(item.catalogId)) groups.set(item.catalogId, { item, count: 0 });
+      groups.get(item.catalogId).count += Number(item.quantity || 1);
+    });
+    const rows = [...groups.values()];
+    const countFor = (catalogId) => groups.get(catalogId)?.count || 0;
+    const mainAngles = countFor('RAF-C-ANGLE-30-8');
+    const shelfBrackets = countFor('RAF-P-SHELF-BRACKET-30');
+    const panelClips = countFor('RAF-P-PANEL-CLIP-30');
+    const m6Total = mainAngles * 2 + shelfBrackets + panelClips;
+    const fastenerSummary = `<p class="section-title" style="margin-top:22px">紧固件合计</p><div class="bom-list">
+      <div class="list-row"><span class="list-main"><span class="list-name">M6×12 内六角螺栓</span><span class="list-sub">主角码、层板角码和面板夹</span></span><span class="list-value">× ${m6Total}</span></div>
+      <div class="list-row"><span class="list-main"><span class="list-name">槽 8 M6 后装螺母</span><span class="list-sub">与 M6×12 一一配套</span></span><span class="list-value">× ${m6Total}</span></div>
+      <div class="list-row"><span class="list-main"><span class="list-name">4×12 木螺钉</span><span class="list-sub">每个层板小角码 1 颗</span></span><span class="list-value">× ${shelfBrackets}</span></div>
+    </div>`;
+    root.innerHTML = '<p class="section-title">当前方案五金</p><div class="bom-list">' + rows.map(({ item, count }, index) => `<button class="list-row" data-hardware="${index}"><span class="list-main"><span class="list-name">${item.name}</span><span class="list-sub">${item.catalogId} · ${item.fasteners}</span></span><span class="list-value">× ${count}</span></button>`).join('') + '</div>' + fastenerSummary;
+    root.querySelectorAll('[data-hardware]').forEach((button) => {
+      button.onclick = () => {
+        const group = rows[Number(button.dataset.hardware)];
+        selectHardware({
+          ...group.item,
+          quantity: group.count,
+          location: `全架共 ${group.count} 处；模型中可点击单个位置查看`,
+        });
+      };
+    });
+  }
+
   function renderBom() {
     const root = document.getElementById('bom-panel');
     root.innerHTML = '<p class="section-title">型材下料汇总</p><div class="bom-list">' + payload.bom.map((row, index) => `<button class="list-row" data-bom="${index}"><span class="list-main"><span class="list-name">${row.catalog_id} · ${row.designation}</span><span class="list-sub">${row.length_mm} mm</span></span><span class="list-value">× ${row.qty}</span></button>`).join('') + '</div>';
@@ -668,7 +942,13 @@
       const ids = payload.bom[Number(button.dataset.bom)].member_ids;
       button.onmouseenter = () => { state.hoverIds = new Set(ids); applyAppearance(); };
       button.onmouseleave = () => { state.hoverIds.clear(); applyAppearance(); };
-      button.onclick = () => { state.hoverIds = new Set(ids); state.selected = ids[0]; renderSelection(); applyAppearance(); };
+      button.onclick = () => {
+        state.hoverIds = new Set(ids);
+        state.selected = ids[0];
+        state.selectedHardware = null;
+        renderSelection();
+        applyAppearance();
+      };
     });
   }
 
@@ -770,8 +1050,10 @@
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
-      const hit = raycaster.intersectObjects(pickMeshes, false)[0];
-      if (hit?.object?.userData?.memberId) selectMember(hit.object.userData.memberId);
+      const candidates = state.showHardware ? [...hardwarePickMeshes, ...pickMeshes] : pickMeshes;
+      const hit = raycaster.intersectObjects(candidates, false)[0];
+      if (hit?.object?.userData?.hardwareInfo) selectHardware(hit.object.userData.hardwareInfo);
+      else if (hit?.object?.userData?.memberId) selectMember(hit.object.userData.memberId);
     });
     canvas.addEventListener('keydown', (event) => {
       if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;

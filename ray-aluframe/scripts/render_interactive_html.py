@@ -161,7 +161,7 @@ canvas.dragging {{ cursor: grabbing; }}
 .fact dt {{ color: var(--muted); font-size: .75rem; }}
 .fact dd {{ margin: 2px 0 0; font-weight: 700; font-variant-numeric: tabular-nums; }}
 .tabs {{ min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr); }}
-.tablist {{ display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--line); }}
+.tablist {{ display: grid; grid-template-columns: repeat(5,1fr); border-bottom: 1px solid var(--line); }}
 .tab {{ min-height: 48px; border: 0; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-weight: 700; color: var(--muted); }}
 .tab[aria-selected="true"] {{ color: var(--ink); border-bottom-color: var(--orange); }}
 .tab-panel {{ min-height: 0; overflow: auto; padding: 18px 22px 30px; }}
@@ -234,20 +234,22 @@ canvas.dragging {{ cursor: grabbing; }}
   </nav>
   <section class="workspace">
     <section class="viewer" id="model" aria-label="可旋转的铝型材结构模型">
-      <canvas id="canvas" tabindex="0" aria-label="拖动旋转，滚轮缩放，点击型材查看参数"></canvas>
+      <canvas id="canvas" tabindex="0" aria-label="拖动旋转，滚轮缩放，点击型材或五金查看参数"></canvas>
       <div class="dimensions" id="dimensions"></div>
-      <p class="view-help">拖动旋转 · 滚轮缩放 · 点击型材查看参数 · 方向键微调</p>
+      <p class="view-help">拖动旋转 · 滚轮缩放 · 点击型材或五金查看参数 · 方向键微调</p>
     </section>
     <aside class="inspector" aria-label="结构信息">
       <section class="selection" id="selection"></section>
       <section class="tabs">
         <div class="tablist" role="tablist" aria-label="结构详情">
           <button class="tab" role="tab" aria-selected="true" aria-controls="members-panel" id="members-tab">构件</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="hardware-panel" id="hardware-tab" tabindex="-1">五金</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="bom-panel" id="bom-tab" tabindex="-1">清单</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="assembly-panel" id="assembly-tab" tabindex="-1">装配</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="issues-panel" id="issues-tab" tabindex="-1">问题</button>
         </div>
         <div class="tab-panel" role="tabpanel" id="members-panel" aria-labelledby="members-tab"></div>
+        <div class="tab-panel" role="tabpanel" id="hardware-panel" aria-labelledby="hardware-tab" hidden></div>
         <div class="tab-panel" role="tabpanel" id="bom-panel" aria-labelledby="bom-tab" hidden></div>
         <div class="tab-panel" role="tabpanel" id="assembly-panel" aria-labelledby="assembly-tab" hidden></div>
         <div class="tab-panel" role="tabpanel" id="issues-panel" aria-labelledby="issues-tab" hidden></div>
@@ -524,6 +526,7 @@ canvas.addEventListener('click',e=>{{if(state.dragDistance>5)return;const r=canv
 canvas.addEventListener('keydown',e=>{{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();if(e.key==='ArrowLeft')state.yaw-=.08;if(e.key==='ArrowRight')state.yaw+=.08;if(e.key==='ArrowUp')state.pitch+=.06;if(e.key==='ArrowDown')state.pitch-=.06;draw();}});
 new ResizeObserver(draw).observe(canvas.parentElement);
 document.getElementById('dimensions').innerHTML=[`宽 ${{envelope[0]}} mm`,`深 ${{envelope[1]}} mm`,`高 ${{envelope[2]}} mm`].map(x=>`<span class="dimension">${{x}}</span>`).join('');
+document.getElementById('hardware-panel').innerHTML='<p class="section-title">五金汇总</p><div class="issue-list">'+(design.accessories||[]).map(a=>`<div class="issue"><p>${{a.description||a.category}} × ${{a.qty||0}}</p></div>`).join('')+'</div>';
 renderSelection();renderMembers();renderBom();renderAssembly();renderIssues();draw();
 </script>
 <script>{three_runtime}</script>
