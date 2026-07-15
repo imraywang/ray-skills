@@ -69,21 +69,8 @@
 
 不要用固定重量阈值代替风险判断。50 kg 放在低矮均布货架与悬空集中载荷是两回事。
 
-## 7. 资料来源
+## 7. 产品数据
 
-优先级从高到低:
+普通设计任务只使用 `product-catalog.json`。其中的轻型参考截面可以做初步变形比较,但不能自动代表用户最终买到的同名型材。
 
-1. 具体厂商当前产品页/目录
-2. 厂商官方计算工具和装配说明
-3. 经销商对该厂商型号的正式技术资料
-4. 电商页或论坛,仅用于发现线索
-
-示例官方资源（查询于 2026-07-14）:
-
-- MayTec 30x30 4F 轻型平面型材: `https://www.maytec.de/produkte/profile/profil-30x30-4f-leicht-plan/`
-- MayTec 30x60 6F 轻型型材: `https://www.maytec.de/produkte/profile/profil-30x60-6f-leicht/`
-- MayTec 40x40 4E 轻型型材: `https://www.maytec.de/produkte/profile/profil-40x40-4e-leicht/`
-- Bosch Rexroth Aluminum Structural Framing 9.0: `https://apps.boschrexroth.com/DCUS/2023/08.25.AT_Uploads/R999001283_2020-09_media-1.pdf`
-- 80/20 变形计算工具: `https://8020.net/deflection-calculator`
-
-引用数据时记录厂商、货号、单位、页面与查询日期。网页英文版若把惯性矩单位误写为 cm^3,以该厂商正式目录/同产品本地语言技术表交叉核对,不要静默猜单位。
+维护产品库时再独立核对原厂目录、计算工具和装配说明。新数据必须确认货号、单位和日期,通过产品库检查和样例验证后才能进入默认目录。单位有歧义时保持字段为空,不要静默猜测。

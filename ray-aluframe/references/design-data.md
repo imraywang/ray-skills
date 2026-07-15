@@ -37,27 +37,16 @@
 ```json
 {
   "id": "P3030",
-  "manufacturer": "MayTec",
-  "series": "PG30",
-  "part_number": "1.11.030030.43LP",
-  "description": "30x30 4F light plain",
-  "width_mm": 30,
-  "height_mm": 30,
-  "weight_kg_m": 0.9,
+  "catalog_id": "RAF-P-3030",
   "stock_length_mm": 6000,
-  "e_mpa": 69000,
-  "ix_mm4": 33000,
-  "iy_mm4": 33000,
   "wx_mm3": null,
   "wy_mm3": null,
   "yield_mpa": null,
-  "source_url": "https://...",
-  "verified_on": "2026-07-14",
-  "assumptions": ["e_mpa is a screening assumption; alloy/temper not stated on product page"]
+  "assumptions": ["米重和惯性使用本目录的轻型参考截面；收到实际商品截面参数后覆盖"]
 }
 ```
 
-`I` 从 cm^4 换算到 mm^4 时乘 `10,000`。若产品页未给 `E` 或屈服强度,可以为变形比较显式填入假设,但强度必须保持未检查。
+脚本根据 `catalog_id` 补齐外形、槽宽、米重和已有的惯性参考。若实际商品参数不同,在设计内覆盖对应字段并写入 `assumptions`。没有截面模量或材料强度时,强度必须保持未检查。
 
 ## 3. 构件
 
@@ -84,16 +73,14 @@
   "at": [0, 0, 150],
   "member_ids": ["POST-FL", "L1-FRONT", "L1-LEFT"],
   "connector": {
-    "manufacturer": "TBD",
-    "part_number": "TBD_VENDOR_SELECTION",
-    "description": "3-way corner connection",
-    "qty": 1,
-    "source_url": ""
+    "catalog_kit_id": "RAF-KIT-JOINT-30-8-M6",
+    "description": "30 系槽 8 标准直角节点套装",
+    "qty": 1
   }
 }
 ```
 
-节点坐标必须落在所引用构件上。`TBD` 允许概念设计继续,但会阻止“可询价”判定。
+节点坐标必须落在所引用构件上。本目录编号无效或缺失会阻止“可询价”判定。
 
 ## 5. 载荷
 
@@ -122,11 +109,9 @@
 ```json
 {
   "category": "foot",
-  "manufacturer": "TBD",
-  "part_number": "TBD_VENDOR_SELECTION",
-  "description": "adjustable foot",
-  "qty": 4,
-  "source_url": ""
+  "catalog_kit_id": "RAF-KIT-FOOT-30",
+  "description": "30 系调平底脚套装",
+  "qty": 4
 }
 ```
 
@@ -152,8 +137,8 @@
 ## 8. 就绪判定
 
 - **草案**:数据或几何有错误,无法完成检查。
-- **待复核**:结构可表达,但仍有厂商货号、连接、加工、强度、载荷或稳定措施未确认。
-- **可询价**:几何完整、横梁初查未失败、型材/连接件/附件有来源、没有 TBD,下料与数量可汇总。
+- **待复核**:结构可表达,但仍有本目录编号、连接、加工、强度、载荷或稳定措施未确认。
+- **可询价**:几何完整、横梁初查未失败、型材/连接件/附件已绑定本目录、没有 TBD,下料与数量可汇总。
 - **受限模式**:载人、吊装、护栏等高风险用途,仅供专业复核与沟通。
 
 “可询价”不等于“已证明安全”或“可无人复核直接制作”。

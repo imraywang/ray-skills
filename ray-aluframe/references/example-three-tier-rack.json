@@ -21,24 +21,13 @@
   "profiles": [
     {
       "id": "P3030",
-      "manufacturer": "MayTec",
-      "series": "PG30",
-      "part_number": "1.11.030030.43LP",
-      "description": "30x30 4F light plain",
-      "width_mm": 30,
-      "height_mm": 30,
-      "weight_kg_m": 0.9,
+      "catalog_id": "RAF-P-3030",
       "stock_length_mm": 6000,
-      "e_mpa": 69000,
-      "ix_mm4": 33000,
-      "iy_mm4": 33000,
       "wx_mm3": null,
       "wy_mm3": null,
       "yield_mpa": null,
-      "source_url": "https://www.maytec.de/produkte/profile/profil-30x30-4f-leicht-plan/",
-      "verified_on": "2026-07-14",
       "assumptions": [
-        "e_mpa 是用于变形比较的铝材常用值;产品页未说明具体合金与状态",
+        "米重和惯性使用 Ray Aluframe 产品库的轻型参考截面",
         "缺截面模量和材料强度,本例不做强度结论"
       ]
     }
@@ -65,18 +54,18 @@
     {"id": "L3-RIGHT", "profile_id": "P3030", "role": "side beam", "start": [1200, 0, 900], "end": [1200, 600, 900], "machining_status": "specified", "machining": [{"location": "TBD", "operation": "TBD after connector selection"}]}
   ],
   "joints": [
-    {"id": "J1-FL", "at": [0, 0, 150], "member_ids": ["POST-FL", "L1-FRONT", "L1-LEFT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J1-FR", "at": [1200, 0, 150], "member_ids": ["POST-FR", "L1-FRONT", "L1-RIGHT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J1-RL", "at": [0, 600, 150], "member_ids": ["POST-RL", "L1-REAR", "L1-LEFT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J1-RR", "at": [1200, 600, 150], "member_ids": ["POST-RR", "L1-REAR", "L1-RIGHT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J2-FL", "at": [0, 0, 525], "member_ids": ["POST-FL", "L2-FRONT", "L2-LEFT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J2-FR", "at": [1200, 0, 525], "member_ids": ["POST-FR", "L2-FRONT", "L2-RIGHT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J2-RL", "at": [0, 600, 525], "member_ids": ["POST-RL", "L2-REAR", "L2-LEFT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J2-RR", "at": [1200, 600, 525], "member_ids": ["POST-RR", "L2-REAR", "L2-RIGHT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J3-FL", "at": [0, 0, 900], "member_ids": ["POST-FL", "L3-FRONT", "L3-LEFT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J3-FR", "at": [1200, 0, 900], "member_ids": ["POST-FR", "L3-FRONT", "L3-RIGHT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J3-RL", "at": [0, 600, 900], "member_ids": ["POST-RL", "L3-REAR", "L3-LEFT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}},
-    {"id": "J3-RR", "at": [1200, 600, 900], "member_ids": ["POST-RR", "L3-REAR", "L3-RIGHT"], "connector": {"manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "3-way corner connection", "qty": 1, "source_url": ""}}
+    {"id": "J1-FL", "at": [0, 0, 150], "member_ids": ["POST-FL", "L1-FRONT", "L1-LEFT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J1-FR", "at": [1200, 0, 150], "member_ids": ["POST-FR", "L1-FRONT", "L1-RIGHT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J1-RL", "at": [0, 600, 150], "member_ids": ["POST-RL", "L1-REAR", "L1-LEFT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J1-RR", "at": [1200, 600, 150], "member_ids": ["POST-RR", "L1-REAR", "L1-RIGHT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J2-FL", "at": [0, 0, 525], "member_ids": ["POST-FL", "L2-FRONT", "L2-LEFT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J2-FR", "at": [1200, 0, 525], "member_ids": ["POST-FR", "L2-FRONT", "L2-RIGHT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J2-RL", "at": [0, 600, 525], "member_ids": ["POST-RL", "L2-REAR", "L2-LEFT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J2-RR", "at": [1200, 600, 525], "member_ids": ["POST-RR", "L2-REAR", "L2-RIGHT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J3-FL", "at": [0, 0, 900], "member_ids": ["POST-FL", "L3-FRONT", "L3-LEFT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J3-FR", "at": [1200, 0, 900], "member_ids": ["POST-FR", "L3-FRONT", "L3-RIGHT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J3-RL", "at": [0, 600, 900], "member_ids": ["POST-RL", "L3-REAR", "L3-LEFT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}},
+    {"id": "J3-RR", "at": [1200, 600, 900], "member_ids": ["POST-RR", "L3-REAR", "L3-RIGHT"], "connector": {"catalog_kit_id": "RAF-KIT-JOINT-30-8-M6", "description": "30 系槽 8 标准直角节点套装", "qty": 1}}
   ],
   "ground_points": [[0, 0, 0], [1200, 0, 0], [0, 600, 0], [1200, 600, 0]],
   "loads": [
@@ -88,8 +77,8 @@
     {"id": "LOAD-L3-REAR", "member_id": "L3-REAR", "mass_kg": 25, "distribution": "uniform", "support": "simply_supported", "inertia_axis": "y", "safety_factor": 1.5, "dynamic_factor": 1.0, "deflection_limit_ratio": 200}
   ],
   "accessories": [
-    {"category": "foot", "manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "adjustable foot", "qty": 4, "source_url": ""},
-    {"category": "shelf", "manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "shelf panel and retainers", "qty": 3, "source_url": ""},
-    {"category": "bracing", "manufacturer": "TBD", "part_number": "TBD_VENDOR_SELECTION", "description": "rear anti-racking brace or verified rigid panel kit", "qty": 1, "source_url": ""}
+    {"category": "foot", "catalog_kit_id": "RAF-KIT-FOOT-30", "description": "30 系调平底脚套装", "qty": 4},
+    {"category": "shelf", "description": "层板按设计尺寸制作", "qty": 3},
+    {"category": "bracing", "description": "后侧抗侧摆拉条或刚性背板", "qty": 1}
   ]
 }

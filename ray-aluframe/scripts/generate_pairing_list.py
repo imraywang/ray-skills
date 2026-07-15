@@ -13,7 +13,7 @@ from typing import Any
 
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_PAIRINGS = SKILL_DIR / "references" / "standard-pairings.json"
+DEFAULT_CATALOG = SKILL_DIR / "references" / "product-catalog.json"
 
 
 def _member_length(member: dict[str, Any]) -> int:
@@ -49,7 +49,10 @@ def _find_system(profile: dict[str, Any], systems: list[dict[str, Any]]) -> dict
     width, height = _profile_spec(profile)
     slot_width = _profile_slot_width(profile)
     for system in systems:
-        sizes = {tuple(int(value) for value in size) for size in system.get("common_profile_sizes_mm", [])}
+        sizes = {
+            tuple(int(value) for value in size)
+            for size in system.get("profile_sizes_mm", system.get("common_profile_sizes_mm", []))
+        }
         size_matches = (width, height) in sizes or (height, width) in sizes
         slot_matches = slot_width is None or slot_width == int(system.get("slot_width_mm") or 0)
         ambiguous_40 = int(system.get("series") or 0) == 40 and slot_width is None
@@ -59,16 +62,16 @@ def _find_system(profile: dict[str, Any], systems: list[dict[str, Any]]) -> dict
 
 
 def _accessory_display(
-    item: dict[str, Any], defaults: dict[str, dict[str, str]]
+    item: dict[str, Any], system: dict[str, Any] | None, products: dict[str, dict[str, Any]]
 ) -> tuple[str, str]:
     category = str(item.get("category") or "")
     description = str(item.get("description") or "")
     if category == "foot":
-        candidate = defaults.get("F-BASE-PLATE") or {}
-        return (
-            candidate.get("name") or "调节脚",
-            candidate.get("selection") or "按同一商家、同一槽系配套",
-        )
+        if system:
+            foot_id = f"RAF-A-FOOT-PLATE-{system['series']}"
+            product = products.get(foot_id) or {}
+            return product.get("name") or "调节脚", f"本目录编号 {foot_id}"
+        return "调节脚", "型材体系未确定，暂不自动匹配"
     if category == "shelf":
         if "600x350x18" in description:
             return "木质层板 600×350×18 mm", "板厚和封边确认后加工；固定件另见层板固定套装"
@@ -80,18 +83,40 @@ def _accessory_display(
             return "右侧展示板 / 洞洞板", "按净尺寸开料，周边多点固定"
         return "左侧刚性背板", "按净尺寸开料，周边多点固定并参与抗侧摆"
     if category == "appearance_optional":
-        return "角码装饰盖（可选）", "与结构角码同系列、同尺寸"
+        product_id = f"RAF-A-CAP-ANGLE-{system['series']}" if system else ""
+        return "角码装饰盖（可选）", f"本目录编号 {product_id}" if product_id else "随角码体系选择"
     if category == "bracing":
         return "后侧抗侧摆拉条或刚性背板套装", "二选一并明确固定点，不能只靠层板防侧摆"
-    candidate = defaults.get(item.get("candidate_id")) or {}
-    name = candidate.get("name") or description or category or "附件"
-    selection = candidate.get("selection") or "按同一商家、同一槽系配套"
-    return name, selection
+    if system and category == "shelf_fastener":
+        product_id = f"RAF-P-SHELF-BRACKET-{system['series']}"
+        product = products[product_id]
+        return product["name"], f"本目录编号 {product_id}；{product['profile_fastener']}；{product['board_fastener']}"
+    if system and category == "panel_fastener":
+        product_id = f"RAF-P-PANEL-CLIP-{system['series']}"
+        product = products[product_id]
+        low, high = product["panel_thickness_range_mm"]
+        return product["name"], f"本目录编号 {product_id}；{product['fastener']}；适配 {low}–{high} mm 板"
+    if system and category in {"panel_mount", "panel", "backing"}:
+        kit_id = system.get("panel_kit_id")
+        return "后装面板固定套装", f"本目录编号 {kit_id}"
+    name = description or category or "附件"
+    return name, "按本目录同槽系套装选择"
 
 
-def generate(design: dict[str, Any], pairings: dict[str, Any]) -> str:
-    profiles = {entry["id"]: entry for entry in design.get("profiles", [])}
-    systems = pairings.get("default_systems", [])
+def generate(design: dict[str, Any], catalog: dict[str, Any]) -> str:
+    systems = catalog.get("systems", [])
+    catalog_profiles = {entry["designation"]: entry for entry in catalog.get("profiles", [])}
+    catalog_profiles_by_id = {entry["id"]: entry for entry in catalog.get("profiles", [])}
+    profiles: dict[str, dict[str, Any]] = {}
+    for entry in design.get("profiles", []):
+        profile = dict(entry)
+        reference = catalog_profiles_by_id.get(profile.get("catalog_id")) or {}
+        for key in ("width_mm", "height_mm", "slot_width_mm", "slot_depth_mm", "series"):
+            if profile.get(key) is None and reference.get(key) is not None:
+                profile[key] = reference[key]
+        profiles[profile["id"]] = profile
+    products = {entry["id"]: entry for entry in catalog.get("products", [])}
+    kits = {entry["id"]: entry for entry in catalog.get("kits", [])}
     member_groups: dict[tuple[str, int], int] = defaultdict(int)
     used_systems: dict[str, dict[str, Any]] = {}
 
@@ -106,51 +131,76 @@ def generate(design: dict[str, Any], pairings: dict[str, Any]) -> str:
 
     title = str((design.get("project") or {}).get("name") or "铝型材方案")
     lines = [f"# {title} · 直观搭配清单", "", "## 型材下料", ""]
-    lines += ["| 型材采购规格 | 长度 | 数量 | 配套体系 |", "|---|---:|---:|---|"]
+    lines += ["| 本目录编号 | 型材采购规格 | 长度 | 数量 | 配套体系 |", "|---|---|---:|---:|---|"]
     for (profile_id, length), qty in sorted(member_groups.items()):
         profile = profiles[profile_id]
         width, height = _profile_spec(profile)
         system = _find_system(profile, systems)
         system_name = system["name"] if system else "未形成自动配套"
-        lines.append(f"| {width}{height} 型材 | {length} mm | {qty} 根 | {system_name} |")
+        designation = f"{width}{height}"
+        catalog_id = catalog_profiles.get(designation, {}).get("id", f"RAF-P-{designation}")
+        lines.append(f"| {catalog_id} | {designation} 型材 | {length} mm | {qty} 根 | {system_name} |")
 
     angle_count = sum(int((joint.get("connector") or {}).get("qty") or 0) for joint in design.get("joints", []))
     lines += ["", "## 连接紧固件", ""]
-    if len(used_systems) == 1 and angle_count:
-        system = next(iter(used_systems.values()))
-        angle = system["standard_angle"]
-        bolts = angle_count * int(angle.get("bolts_per_piece") or 0)
-        nuts = angle_count * int(angle.get("t_nuts_per_piece") or 0)
-        thread = system["default_thread"]
-        slot = system["slot_width_mm"]
+    selected_system = next(iter(used_systems.values())) if len(used_systems) == 1 else None
+    if selected_system and angle_count:
+        system = selected_system
+        kit = kits[system["standard_joint_kit_id"]]
         lines += [
-            "| 物料 | 统一采购规格 | 净数量 | 建议购买量 |",
+            "| 本目录编号 | 物料 | 净数量 | 建议购买量 |",
             "|---|---|---:|---:|",
-            f"| 结构角码 | {angle['name']}，孔约 {angle['hole_diameter_mm']} mm | {angle_count} | {_round_up(angle_count, 5)} |",
-            f"| 角码螺栓 | {thread} 内六角，长度随角码厚度 | {bolts} | {_round_up(bolts, 10)} |",
-            f"| 槽螺母 | 槽 {slot} 后装弹片螺母 {thread} | {nuts} | {_round_up(nuts, 10)} |",
-            f"| 角码盖 | 对应 {system['series']} 系角码，可选 | {angle_count} | {_round_up(angle_count, 5)} |",
-            "",
-            f"淘宝搜索词：{'；'.join(system.get('market_search_terms', []))}",
-            "",
-            "优先购买已含螺栓和槽螺母的角码套装；若套装已含，不要重复购买单独紧固件。",
         ]
+        for component in kit["components"]:
+            product = products[component["product_id"]]
+            qty = angle_count * int(component["qty"])
+            name = product["name"] + ("（可选）" if component.get("optional") else "")
+            step = 5 if product["kind"] in {"connector", "appearance"} else 10
+            lines.append(f"| {product['id']} | {name} | {qty} | {_round_up(qty, step)} |")
+        lines += ["", f"节点套装：{kit['id']} · {kit['name']}。以上数量已经拆开计算，不需要再访问其他目录补参数。"]
     else:
         lines.append("当前方案包含多套槽系或没有可自动配套的连接节点，需先按节点拆分角码数量。")
 
-    defaults = pairings.get("accessory_defaults", {})
     accessories = design.get("accessories", [])
     if accessories:
         lines += ["", "## 层板、面板和底脚", "", "| 物料 | 数量 | 选择说明 |", "|---|---:|---|"]
         for item in accessories:
-            name, selection = _accessory_display(item, defaults)
+            if selected_system and item.get("category") == "appearance_optional":
+                continue
+            name, selection = _accessory_display(item, selected_system, products)
             lines.append(f"| {name} | {int(item.get('qty') or 0)} | {selection} |")
+
+    if selected_system:
+        kit = kits[selected_system["standard_joint_kit_id"]]
+        angle_product = products[kit["components"][0]["product_id"]]
+        lines += [
+            "",
+            "## 本方案采用的关键参数",
+            "",
+            "| 项目 | 参数 |",
+            "|---|---|",
+            f"| 型材体系 | {selected_system['name']} |",
+            f"| 实际槽宽 | {selected_system['slot_width_mm']} mm |",
+            f"| 槽深参考 | {selected_system['slot_depth_reference_mm']} mm |",
+            f"| 默认螺纹 | {selected_system['default_thread']} |",
+            f"| 结构角码 | {angle_product['width_mm']} mm 宽，{angle_product['arm_a_mm']}×{angle_product['arm_b_mm']} mm，厚 {angle_product['thickness_mm']} mm |",
+            f"| 角码孔径 | {angle_product['hole_diameter_mm']} mm |",
+        ]
+        used_designations = sorted({f"{_profile_spec(profile)[0]}{_profile_spec(profile)[1]}" for profile in profiles.values()})
+        for designation in used_designations:
+            catalog_profile = catalog_profiles.get(designation) or {}
+            engineering = catalog_profile.get("engineering_reference") or {}
+            if engineering:
+                class_name = "轻型参考截面" if engineering.get("class") == "light_reference" else "标准参考截面"
+                lines.append(
+                    f"| {designation} {class_name} | 米重 {engineering['weight_kg_m']} kg/m；Ix {engineering['ix_mm4']} mm⁴；Iy {engineering['iy_mm4']} mm⁴ |"
+                )
 
     lines += [
         "",
         "## 发给商家的一句话",
         "",
-        "> 请按同一槽系整套确认型材截面、实际槽宽、中心孔/攻丝、角码定位凸台、螺栓长度和槽螺母外形；如任一项不匹配，不要跨店替换。",
+        "> 请按本清单编号和参数整套供货；如现货规格不同，请逐项标出实际槽宽、中心孔、角码孔径、螺栓长度和槽螺母螺纹的差异，不要自行替换。",
         "",
         "这张表解决配套和数量；承重、侧摆、防倾倒及板材强度仍以检查报告为准。",
         "",
@@ -161,13 +211,13 @@ def generate(design: dict[str, Any], pairings: dict[str, Any]) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("design", type=Path)
-    parser.add_argument("--pairings", type=Path, default=DEFAULT_PAIRINGS)
+    parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
     design = json.loads(args.design.read_text(encoding="utf-8"))
-    pairings = json.loads(args.pairings.read_text(encoding="utf-8"))
-    output = generate(design, pairings)
+    catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
+    output = generate(design, catalog)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(output, encoding="utf-8")
     print(args.output)

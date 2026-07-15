@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import sys
 from collections import Counter, defaultdict, deque
 from pathlib import Path
@@ -13,6 +14,47 @@ from typing import Any
 
 G = 9.80665
 EPS = 1e-6
+CATALOG_PATH = Path(__file__).resolve().parents[1] / "references" / "product-catalog.json"
+
+
+def load_catalog() -> dict[str, Any]:
+    return json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+
+
+def hydrate_profiles(entries: list[dict[str, Any]], catalog: dict[str, Any]) -> list[dict[str, Any]]:
+    catalog_profiles = {item["id"]: item for item in catalog.get("profiles", [])}
+    hydrated = []
+    for entry in entries:
+        profile = dict(entry)
+        catalog_id = profile.get("catalog_id")
+        if not catalog_id:
+            width = int(profile.get("width_mm") or 0)
+            height = int(profile.get("height_mm") or 0)
+            candidate_id = f"RAF-P-{width}{height}"
+            text = " ".join(str(profile.get(key) or "") for key in ("series", "description", "part_number"))
+            slot_match = re.search(r"(?:槽|slot|groove)\s*[-:]?\s*(6|8|10)\b", text, re.I)
+            slot_hint = int(profile.get("slot_width_mm") or (slot_match.group(1) if slot_match else 0))
+            ambiguous_40 = width == height == 40 and not slot_hint
+            candidate = catalog_profiles.get(candidate_id)
+            if candidate and not ambiguous_40 and (not slot_hint or candidate.get("slot_width_mm") == slot_hint):
+                catalog_id = candidate_id
+                profile["catalog_id"] = catalog_id
+        reference = catalog_profiles.get(catalog_id)
+        if reference:
+            for key in ("width_mm", "height_mm", "slot_width_mm", "slot_depth_mm"):
+                if profile.get(key) is None:
+                    profile[key] = reference.get(key)
+            profile.setdefault("part_number", reference.get("designation"))
+            profile.setdefault("description", reference.get("name"))
+            profile.setdefault("stock_length_mm", max(reference.get("stock_length_options_mm") or [6000]))
+            engineering = reference.get("engineering_reference") or {}
+            for key in ("weight_kg_m", "ix_mm4", "iy_mm4"):
+                if profile.get(key) is None and engineering.get(key) is not None:
+                    profile[key] = engineering[key]
+            if engineering:
+                profile.setdefault("e_mpa", 69000)
+        hydrated.append(profile)
+    return hydrated
 
 
 def point_on_segment(point: list[float], start: list[float], end: list[float]) -> bool:
@@ -112,7 +154,14 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
     warnings: list[str] = []
     blockers: list[str] = []
 
-    profiles = {p.get("id"): p for p in data.get("profiles", []) if p.get("id")}
+    catalog = load_catalog()
+    catalog_profiles_by_id = {item["id"]: item for item in catalog.get("profiles", [])}
+    systems_by_id = {item["id"]: item for item in catalog.get("systems", [])}
+    catalog_ids = {
+        item["id"] for group in ("profiles", "products", "kits") for item in catalog.get(group, [])
+    }
+    profile_entries = hydrate_profiles(data.get("profiles", []), catalog)
+    profiles = {p.get("id"): p for p in profile_entries if p.get("id")}
     members = {m.get("id"): m for m in data.get("members", []) if m.get("id")}
     joints = data.get("joints", [])
     settings = data.get("settings", {})
@@ -126,7 +175,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
         if is_tbd(checks.get(key)):
             blockers.append(f"{label}措施未确认")
 
-    if len(profiles) != len(data.get("profiles", [])):
+    if len(profiles) != len(profile_entries):
         errors.append("型材 id 缺失或重复")
     if len(members) != len(data.get("members", [])):
         errors.append("构件 id 缺失或重复")
@@ -213,11 +262,20 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
                 if a != b:
                     graph[a].add(b)
         connector = joint.get("connector", {})
-        part = connector.get("part_number")
-        source = connector.get("source_url")
-        if is_tbd(part) or is_tbd(source):
-            blockers.append(f"{jid}: 连接件货号或来源待厂商绑定")
-        connector_counts[(str(connector.get("manufacturer", "")), str(part or ""), str(connector.get("description", "")))] += int(connector.get("qty", 1))
+        catalog_id = connector.get("catalog_kit_id") or connector.get("catalog_id")
+        if not catalog_id:
+            system_ids = {
+                catalog_profiles_by_id.get(profiles[members[mid]["profile_id"]].get("catalog_id"), {}).get("system_id")
+                for mid in valid_mids
+            }
+            system_ids.discard(None)
+            if len(system_ids) == 1:
+                system = systems_by_id[next(iter(system_ids))]
+                catalog_id = system["standard_joint_kit_id"]
+                connector["catalog_kit_id"] = catalog_id
+        if catalog_id not in catalog_ids:
+            blockers.append(f"{jid}: 连接件缺少有效的本目录编号")
+        connector_counts[(str(catalog_id or ""), str(connector.get("description", "")), "")] += int(connector.get("qty", 1))
 
     ground = {tuple(p) for p in ground_points if isinstance(p, list) and len(p) == 3}
     for member in members.values():
@@ -243,10 +301,12 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
             errors.append("存在未连通构件: " + ", ".join(sorted(disconnected)))
 
     for pid, profile in profiles.items():
-        required = ("manufacturer", "part_number", "stock_length_mm", "source_url", "verified_on")
+        required = ("catalog_id", "stock_length_mm")
         missing = [key for key in required if is_tbd(profile.get(key))]
         if missing:
-            blockers.append(f"型材 {pid}: 缺少采购来源字段 {', '.join(missing)}")
+            blockers.append(f"型材 {pid}: 缺少本目录字段 {', '.join(missing)}")
+        elif profile.get("catalog_id") not in catalog_ids:
+            blockers.append(f"型材 {pid}: 本目录编号无效")
         if profile.get("assumptions"):
             warnings.append(f"型材 {pid}: 含假设数据,见 assumptions")
 
@@ -276,12 +336,25 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
             blockers.append(f"{result['load_id']}: 弯曲应力初查失败")
 
     accessory_counts: Counter[tuple[str, str, str, str]] = Counter()
+    design_system_ids = {
+        catalog_profiles_by_id.get(profile.get("catalog_id"), {}).get("system_id") for profile in profiles.values()
+    }
+    design_system_ids.discard(None)
+    design_system = systems_by_id[next(iter(design_system_ids))] if len(design_system_ids) == 1 else None
     for item in data.get("accessories", []):
-        part = item.get("part_number")
-        source = item.get("source_url")
-        if is_tbd(part) or is_tbd(source):
-            blockers.append(f"附件 {item.get('description', '?')}: 货号或来源待厂商绑定")
-        accessory_counts[(str(item.get("category", "")), str(item.get("manufacturer", "")), str(part or ""), str(item.get("description", "")))] += int(item.get("qty", 1))
+        catalog_id = item.get("catalog_kit_id") or item.get("catalog_id")
+        if not catalog_id and design_system:
+            inferred_key = {
+                "foot": "foot_kit_id",
+                "shelf_fastener": "shelf_kit_id",
+                "panel_fastener": "panel_kit_id",
+            }.get(item.get("category"))
+            if inferred_key:
+                catalog_id = design_system[inferred_key]
+                item["catalog_kit_id"] = catalog_id
+        if catalog_id and catalog_id not in catalog_ids:
+            blockers.append(f"附件 {item.get('description', '?')}: 本目录编号无效")
+        accessory_counts[(str(item.get("category", "")), str(catalog_id or ""), "", str(item.get("description", "")))] += int(item.get("qty", 1))
 
     cut_plans: dict[str, list[dict[str, Any]]] = {}
     for pid, lengths in lengths_by_profile.items():
@@ -350,7 +423,7 @@ def markdown(data: dict[str, Any], result: dict[str, Any]) -> str:
         profile = result["profiles"][pid]
         total = result["total_length_by_profile"][pid]
         lines += [
-            f"### {pid} · {profile.get('manufacturer', '')} {profile.get('part_number', '')}",
+            f"### {pid} · {profile.get('catalog_id', '未绑定')} {profile.get('part_number', '')}",
             "",
             f"- 成品总长: {total:.0f} mm",
             f"- 需要原料: {len(bars)} 根 × {float(profile['stock_length_mm']):.0f} mm",
@@ -365,11 +438,11 @@ def markdown(data: dict[str, Any], result: dict[str, Any]) -> str:
     lines.append(f"型材估算总重: {result['total_profile_weight_kg']:.2f} kg")
     lines.append("")
 
-    lines += ["## 连接件", "", "| 厂商 | 货号 | 名称 | 数量 |", "|---|---|---|---:|"]
-    for (manufacturer, part, description), qty in sorted(result["connector_counts"].items()):
-        lines.append(f"| {manufacturer or '待定'} | {part or '待定'} | {description} | {qty} |")
+    lines += ["## 连接件", "", "| 本目录编号 | 名称 | 数量 |", "|---|---|---:|"]
+    for (catalog_id, description, _), qty in sorted(result["connector_counts"].items()):
+        lines.append(f"| {catalog_id or '待定'} | {description} | {qty} |")
     if not result["connector_counts"]:
-        lines.append("| — | — | 未提供 | — |")
+        lines.append("| — | 未提供 | — |")
     lines.append("")
 
     lines += ["## 加工清单", "", "| 构件 | 位置 | 加工 |", "|---|---|---|"]
@@ -379,11 +452,11 @@ def markdown(data: dict[str, Any], result: dict[str, Any]) -> str:
         lines.append("| — | — | 未提供 |")
     lines.append("")
 
-    lines += ["## 附件", "", "| 类别 | 厂商 | 货号 | 名称 | 数量 |", "|---|---|---|---|---:|"]
-    for (category, manufacturer, part, description), qty in sorted(result["accessory_counts"].items()):
-        lines.append(f"| {category} | {manufacturer or '待定'} | {part or '待定'} | {description} | {qty} |")
+    lines += ["## 附件", "", "| 类别 | 本目录编号 | 名称 | 数量 |", "|---|---|---|---:|"]
+    for (category, catalog_id, _, description), qty in sorted(result["accessory_counts"].items()):
+        lines.append(f"| {category} | {catalog_id or '按板材尺寸制作'} | {description} | {qty} |")
     if not result["accessory_counts"]:
-        lines.append("| — | — | — | 未提供 | — |")
+        lines.append("| — | — | 未提供 | — |")
     lines.append("")
     return "\n".join(lines) + "\n"
 

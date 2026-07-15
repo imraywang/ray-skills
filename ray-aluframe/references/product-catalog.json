@@ -1,0 +1,3253 @@
+{
+  "schema_version": 1,
+  "catalog_name": "Ray Aluframe Product Catalog",
+  "catalog_owner": "Ray Skills",
+  "catalog_version": "2026.07.15-1",
+  "built_on": "2026-07-14",
+  "runtime_policy": "self_contained_no_external_lookup",
+  "coverage": {
+    "systems": 3,
+    "profiles_and_shafts": 143,
+    "engineering_reference_profiles": 7,
+    "standard_products": 19,
+    "complete_kits": 12
+  },
+  "data_rules": [
+    "槽系、螺纹、角码孔径和定位尺寸用于配套判断。",
+    "同名型材的壁厚、米重和惯性参数可能随截面版本变化；只有带 engineering_reference 的条目可用于初步变形比较。",
+    "清单按本目录的完整套装输出，不要求用户访问外部目录。",
+    "40 系槽 8 与 40 系槽 10 永不自动混配。"
+  ],
+  "systems": [
+    {
+      "id": "RAF-S20-6-M5",
+      "name": "20 系槽 6 / M5",
+      "series": 20,
+      "slot_width_mm": 6,
+      "slot_depth_reference_mm": 6,
+      "default_thread": "M5",
+      "profile_sizes_mm": [
+        [
+          20,
+          20
+        ],
+        [
+          20,
+          40
+        ],
+        [
+          20,
+          60
+        ],
+        [
+          20,
+          80
+        ]
+      ],
+      "standard_joint_kit_id": "RAF-KIT-JOINT-20-6-M5",
+      "shelf_kit_id": "RAF-KIT-SHELF-20-6-M5",
+      "panel_kit_id": "RAF-KIT-PANEL-20-6-M5",
+      "foot_kit_id": "RAF-KIT-FOOT-20"
+    },
+    {
+      "id": "RAF-S30-8-M6",
+      "name": "30 系槽 8 / M6",
+      "series": 30,
+      "slot_width_mm": 8,
+      "slot_depth_reference_mm": 7,
+      "default_thread": "M6",
+      "profile_sizes_mm": [
+        [
+          30,
+          30
+        ],
+        [
+          30,
+          60
+        ],
+        [
+          30,
+          90
+        ],
+        [
+          30,
+          120
+        ],
+        [
+          30,
+          150
+        ]
+      ],
+      "standard_joint_kit_id": "RAF-KIT-JOINT-30-8-M6",
+      "shelf_kit_id": "RAF-KIT-SHELF-30-8-M6",
+      "panel_kit_id": "RAF-KIT-PANEL-30-8-M6",
+      "foot_kit_id": "RAF-KIT-FOOT-30"
+    },
+    {
+      "id": "RAF-S40-8-M6",
+      "name": "40 系槽 8 / M6",
+      "series": 40,
+      "slot_width_mm": 8,
+      "slot_depth_reference_mm": 8,
+      "default_thread": "M6",
+      "profile_sizes_mm": [
+        [
+          40,
+          40
+        ],
+        [
+          40,
+          80
+        ],
+        [
+          40,
+          120
+        ],
+        [
+          80,
+          80
+        ],
+        [
+          80,
+          160
+        ]
+      ],
+      "standard_joint_kit_id": "RAF-KIT-JOINT-40-8-M6",
+      "shelf_kit_id": "RAF-KIT-SHELF-40-8-M6",
+      "panel_kit_id": "RAF-KIT-PANEL-40-8-M6",
+      "foot_kit_id": "RAF-KIT-FOOT-40"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "RAF-P-100100J",
+      "kind": "profile",
+      "designation": "100100J",
+      "name": "100100J 型材",
+      "system_id": null,
+      "series": 50,
+      "width_mm": 100,
+      "height_mm": 100,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-1515",
+      "kind": "profile",
+      "designation": "1515",
+      "name": "1515 型材",
+      "system_id": null,
+      "series": 15,
+      "width_mm": 15,
+      "height_mm": 15,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-1520",
+      "kind": "profile",
+      "designation": "1520",
+      "name": "1520 型材",
+      "system_id": null,
+      "series": 15,
+      "width_mm": 15,
+      "height_mm": 20,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-1530",
+      "kind": "profile",
+      "designation": "1530",
+      "name": "1530 型材",
+      "system_id": null,
+      "series": 15,
+      "width_mm": 15,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-1530A",
+      "kind": "profile",
+      "designation": "1530A",
+      "name": "1530A 型材",
+      "system_id": null,
+      "series": 15,
+      "width_mm": 15,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-1540",
+      "kind": "profile",
+      "designation": "1540",
+      "name": "1540 型材",
+      "system_id": null,
+      "series": 15,
+      "width_mm": 15,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-1570",
+      "kind": "profile",
+      "designation": "1570",
+      "name": "1570 型材",
+      "system_id": null,
+      "series": 15,
+      "width_mm": 15,
+      "height_mm": 70,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-2020",
+      "kind": "profile",
+      "designation": "2020",
+      "name": "2020 型材",
+      "system_id": "RAF-S20-6-M5",
+      "series": 20,
+      "width_mm": 20,
+      "height_mm": 20,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": {
+        "class": "standard_reference",
+        "weight_kg_m": 0.5,
+        "ix_mm4": 7420,
+        "iy_mm4": 7420
+      },
+      "data_status": "geometry_and_engineering_reference"
+    },
+    {
+      "id": "RAF-P-2020A",
+      "kind": "profile",
+      "designation": "2020A",
+      "name": "2020A 型材",
+      "system_id": "RAF-S20-6-M5",
+      "series": 20,
+      "width_mm": 20,
+      "height_mm": 20,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-2020B",
+      "kind": "profile",
+      "designation": "2020B",
+      "name": "2020B 型材",
+      "system_id": "RAF-S20-6-M5",
+      "series": 20,
+      "width_mm": 20,
+      "height_mm": 20,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-2020D",
+      "kind": "profile",
+      "designation": "2020D",
+      "name": "2020D 型材",
+      "system_id": "RAF-S20-6-M5",
+      "series": 20,
+      "width_mm": 20,
+      "height_mm": 20,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-2020E",
+      "kind": "profile",
+      "designation": "2020E",
+      "name": "2020E 型材",
+      "system_id": "RAF-S20-6-M5",
+      "series": 20,
+      "width_mm": 20,
+      "height_mm": 20,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-2040",
+      "kind": "profile",
+      "designation": "2040",
+      "name": "2040 型材",
+      "system_id": "RAF-S20-6-M5",
+      "series": 20,
+      "width_mm": 20,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": {
+        "class": "standard_reference",
+        "weight_kg_m": 0.88,
+        "ix_mm4": 51300,
+        "iy_mm4": 13580
+      },
+      "data_status": "geometry_and_engineering_reference"
+    },
+    {
+      "id": "RAF-P-2060",
+      "kind": "profile",
+      "designation": "2060",
+      "name": "2060 型材",
+      "system_id": "RAF-S20-6-M5",
+      "series": 20,
+      "width_mm": 20,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-2080",
+      "kind": "profile",
+      "designation": "2080",
+      "name": "2080 型材",
+      "system_id": "RAF-S20-6-M5",
+      "series": 20,
+      "width_mm": 20,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-30120",
+      "kind": "profile",
+      "designation": "30120",
+      "name": "30120 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 120,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-30150",
+      "kind": "profile",
+      "designation": "30150",
+      "name": "30150 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 150,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3030",
+      "kind": "profile",
+      "designation": "3030",
+      "name": "3030 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": {
+        "class": "standard_reference",
+        "weight_kg_m": 0.9,
+        "ix_mm4": 28300,
+        "iy_mm4": 28300,
+        "wx_mm3": 1890,
+        "wy_mm3": 1890
+      },
+      "data_status": "geometry_and_engineering_reference"
+    },
+    {
+      "id": "RAF-P-3030A",
+      "kind": "profile",
+      "designation": "3030A",
+      "name": "3030A 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3030B",
+      "kind": "profile",
+      "designation": "3030B",
+      "name": "3030B 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3030C",
+      "kind": "profile",
+      "designation": "3030C",
+      "name": "3030C 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3030R",
+      "kind": "profile",
+      "designation": "3030R",
+      "name": "3030R 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3030Y",
+      "kind": "profile",
+      "designation": "3030Y",
+      "name": "3030Y 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3045M",
+      "kind": "profile",
+      "designation": "3045M",
+      "name": "3045M 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3060",
+      "kind": "profile",
+      "designation": "3060",
+      "name": "3060 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": {
+        "class": "standard_reference",
+        "weight_kg_m": 1.6,
+        "ix_mm4": 205600,
+        "iy_mm4": 53300
+      },
+      "data_status": "geometry_and_engineering_reference"
+    },
+    {
+      "id": "RAF-P-3060A",
+      "kind": "profile",
+      "designation": "3060A",
+      "name": "3060A 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3060B",
+      "kind": "profile",
+      "designation": "3060B",
+      "name": "3060B 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3060Y",
+      "kind": "profile",
+      "designation": "3060Y",
+      "name": "3060Y 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-3090",
+      "kind": "profile",
+      "designation": "3090",
+      "name": "3090 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 90,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": {
+        "class": "standard_reference",
+        "weight_kg_m": 2.44,
+        "ix_mm4": 662800,
+        "iy_mm4": 84400
+      },
+      "data_status": "geometry_and_engineering_reference"
+    },
+    {
+      "id": "RAF-P-40120",
+      "kind": "profile",
+      "designation": "40120",
+      "name": "40120 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 120,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4040",
+      "kind": "profile",
+      "designation": "4040",
+      "name": "4040 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": {
+        "class": "light_reference",
+        "weight_kg_m": 1.74,
+        "ix_mm4": 90000,
+        "iy_mm4": 90000,
+        "wx_mm3": 4500,
+        "wy_mm3": 4500
+      },
+      "data_status": "geometry_and_engineering_reference"
+    },
+    {
+      "id": "RAF-P-4040A",
+      "kind": "profile",
+      "designation": "4040A",
+      "name": "4040A 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4040B",
+      "kind": "profile",
+      "designation": "4040B",
+      "name": "4040B 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4040C",
+      "kind": "profile",
+      "designation": "4040C",
+      "name": "4040C 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4040E",
+      "kind": "profile",
+      "designation": "4040E",
+      "name": "4040E 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4040J",
+      "kind": "profile",
+      "designation": "4040J",
+      "name": "4040J 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4040R",
+      "kind": "profile",
+      "designation": "4040R",
+      "name": "4040R 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4040RE",
+      "kind": "profile",
+      "designation": "4040RE",
+      "name": "4040RE 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4040Y",
+      "kind": "profile",
+      "designation": "4040Y",
+      "name": "4040Y 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4040YA",
+      "kind": "profile",
+      "designation": "4040YA",
+      "name": "4040YA 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4060S",
+      "kind": "profile",
+      "designation": "4060S",
+      "name": "4060S 型材",
+      "system_id": null,
+      "series": 20,
+      "width_mm": 40,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4080",
+      "kind": "profile",
+      "designation": "4080",
+      "name": "4080 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": {
+        "class": "light_reference",
+        "weight_kg_m": 3.04,
+        "ix_mm4": 695400,
+        "iy_mm4": 166000,
+        "wx_mm3": 17380,
+        "wy_mm3": 8300
+      },
+      "data_status": "geometry_and_engineering_reference"
+    },
+    {
+      "id": "RAF-P-4080A",
+      "kind": "profile",
+      "designation": "4080A",
+      "name": "4080A 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4080B",
+      "kind": "profile",
+      "designation": "4080B",
+      "name": "4080B 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4080C",
+      "kind": "profile",
+      "designation": "4080C",
+      "name": "4080C 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4080E",
+      "kind": "profile",
+      "designation": "4080E",
+      "name": "4080E 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4080J",
+      "kind": "profile",
+      "designation": "4080J",
+      "name": "4080J 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4080S",
+      "kind": "profile",
+      "designation": "4080S",
+      "name": "4080S 型材",
+      "system_id": null,
+      "series": 20,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4080Y",
+      "kind": "profile",
+      "designation": "4080Y",
+      "name": "4080Y 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4080YJ",
+      "kind": "profile",
+      "designation": "4080YJ",
+      "name": "4080YJ 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4420",
+      "kind": "profile",
+      "designation": "4420",
+      "name": "4420 型材",
+      "system_id": null,
+      "series": 20,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4545",
+      "kind": "profile",
+      "designation": "4545",
+      "name": "4545 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4545A",
+      "kind": "profile",
+      "designation": "4545A",
+      "name": "4545A 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4545B",
+      "kind": "profile",
+      "designation": "4545B",
+      "name": "4545B 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4545C",
+      "kind": "profile",
+      "designation": "4545C",
+      "name": "4545C 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4545E",
+      "kind": "profile",
+      "designation": "4545E",
+      "name": "4545E 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4545F",
+      "kind": "profile",
+      "designation": "4545F",
+      "name": "4545F 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4545R",
+      "kind": "profile",
+      "designation": "4545R",
+      "name": "4545R 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4545RC",
+      "kind": "profile",
+      "designation": "4545RC",
+      "name": "4545RC 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4545Y",
+      "kind": "profile",
+      "designation": "4545Y",
+      "name": "4545Y 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 45,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4590C",
+      "kind": "profile",
+      "designation": "4590C",
+      "name": "4590C 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 90,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-4590Y",
+      "kind": "profile",
+      "designation": "4590Y",
+      "name": "4590Y 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 45,
+      "height_mm": 90,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-50100J",
+      "kind": "profile",
+      "designation": "50100J",
+      "name": "50100J 型材",
+      "system_id": null,
+      "series": 50,
+      "width_mm": 50,
+      "height_mm": 100,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-5050",
+      "kind": "profile",
+      "designation": "5050",
+      "name": "5050 型材",
+      "system_id": null,
+      "series": 50,
+      "width_mm": 50,
+      "height_mm": 50,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-5050J",
+      "kind": "profile",
+      "designation": "5050J",
+      "name": "5050J 型材",
+      "system_id": null,
+      "series": 50,
+      "width_mm": 50,
+      "height_mm": 50,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-5050S",
+      "kind": "profile",
+      "designation": "5050S",
+      "name": "5050S 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 50,
+      "height_mm": 50,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-6060",
+      "kind": "profile",
+      "designation": "6060",
+      "name": "6060 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 60,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-6060Y",
+      "kind": "profile",
+      "designation": "6060Y",
+      "name": "6060Y 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 60,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-6630",
+      "kind": "profile",
+      "designation": "6630",
+      "name": "6630 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 60,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-6630R",
+      "kind": "profile",
+      "designation": "6630R",
+      "name": "6630R 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 60,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-6630Y",
+      "kind": "profile",
+      "designation": "6630Y",
+      "name": "6630Y 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 60,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-80160X",
+      "kind": "profile",
+      "designation": "80160X",
+      "name": "80160X 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 160,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8080",
+      "kind": "profile",
+      "designation": "8080",
+      "name": "8080 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8080C",
+      "kind": "profile",
+      "designation": "8080C",
+      "name": "8080C 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8080E",
+      "kind": "profile",
+      "designation": "8080E",
+      "name": "8080E 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8080J",
+      "kind": "profile",
+      "designation": "8080J",
+      "name": "8080J 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8080Y",
+      "kind": "profile",
+      "designation": "8080Y",
+      "name": "8080Y 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8840",
+      "kind": "profile",
+      "designation": "8840",
+      "name": "8840 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8840R",
+      "kind": "profile",
+      "designation": "8840R",
+      "name": "8840R 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8840RE",
+      "kind": "profile",
+      "designation": "8840RE",
+      "name": "8840RE 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8840RT",
+      "kind": "profile",
+      "designation": "8840RT",
+      "name": "8840RT 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 85,
+      "height_mm": 85,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-8840Y",
+      "kind": "profile",
+      "designation": "8840Y",
+      "name": "8840Y 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-9090C",
+      "kind": "profile",
+      "designation": "9090C",
+      "name": "9090C 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 90,
+      "height_mm": 90,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-9090Y",
+      "kind": "profile",
+      "designation": "9090Y",
+      "name": "9090Y 型材",
+      "system_id": null,
+      "series": 45,
+      "width_mm": 90,
+      "height_mm": 90,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 9,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H1530",
+      "kind": "profile",
+      "designation": "H1530",
+      "name": "H1530 型材",
+      "system_id": null,
+      "series": 15,
+      "width_mm": 15,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 6,
+      "slot_depth_mm": 6,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H4040",
+      "kind": "profile",
+      "designation": "H4040",
+      "name": "H4040 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H4040C",
+      "kind": "profile",
+      "designation": "H4040C",
+      "name": "H4040C 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H4040E",
+      "kind": "profile",
+      "designation": "H4040E",
+      "name": "H4040E 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H4040F",
+      "kind": "profile",
+      "designation": "H4040F",
+      "name": "H4040F 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H4040R",
+      "kind": "profile",
+      "designation": "H4040R",
+      "name": "H4040R 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H4060",
+      "kind": "profile",
+      "designation": "H4060",
+      "name": "H4060 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H4080",
+      "kind": "profile",
+      "designation": "H4080",
+      "name": "H4080 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H4080C",
+      "kind": "profile",
+      "designation": "H4080C",
+      "name": "H4080C 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H8080",
+      "kind": "profile",
+      "designation": "H8080",
+      "name": "H8080 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-H8080C",
+      "kind": "profile",
+      "designation": "H8080C",
+      "name": "H8080C 型材",
+      "system_id": null,
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 10,
+      "slot_depth_mm": 10,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3030",
+      "kind": "profile",
+      "designation": "J3030",
+      "name": "J3030 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3030A",
+      "kind": "profile",
+      "designation": "J3030A",
+      "name": "J3030A 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3030B",
+      "kind": "profile",
+      "designation": "J3030B",
+      "name": "J3030B 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3030G",
+      "kind": "profile",
+      "designation": "J3030G",
+      "name": "J3030G 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3030H",
+      "kind": "profile",
+      "designation": "J3030H",
+      "name": "J3030H 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3030RS",
+      "kind": "profile",
+      "designation": "J3030RS",
+      "name": "J3030RS 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3030T",
+      "kind": "profile",
+      "designation": "J3030T",
+      "name": "J3030T 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 30,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3060",
+      "kind": "profile",
+      "designation": "J3060",
+      "name": "J3060 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3060A",
+      "kind": "profile",
+      "designation": "J3060A",
+      "name": "J3060A 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3060B",
+      "kind": "profile",
+      "designation": "J3060B",
+      "name": "J3060B 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3060G",
+      "kind": "profile",
+      "designation": "J3060G",
+      "name": "J3060G 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J3090",
+      "kind": "profile",
+      "designation": "J3090",
+      "name": "J3090 型材",
+      "system_id": "RAF-S30-8-M6",
+      "series": 30,
+      "width_mm": 30,
+      "height_mm": 90,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040",
+      "kind": "profile",
+      "designation": "J4040",
+      "name": "J4040 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040A",
+      "kind": "profile",
+      "designation": "J4040A",
+      "name": "J4040A 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040B",
+      "kind": "profile",
+      "designation": "J4040B",
+      "name": "J4040B 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040C",
+      "kind": "profile",
+      "designation": "J4040C",
+      "name": "J4040C 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040E",
+      "kind": "profile",
+      "designation": "J4040E",
+      "name": "J4040E 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040GE",
+      "kind": "profile",
+      "designation": "J4040GE",
+      "name": "J4040GE 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040H",
+      "kind": "profile",
+      "designation": "J4040H",
+      "name": "J4040H 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040J",
+      "kind": "profile",
+      "designation": "J4040J",
+      "name": "J4040J 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040R",
+      "kind": "profile",
+      "designation": "J4040R",
+      "name": "J4040R 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4040T",
+      "kind": "profile",
+      "designation": "J4040T",
+      "name": "J4040T 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 40,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4080A",
+      "kind": "profile",
+      "designation": "J4080A",
+      "name": "J4080A 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4080B",
+      "kind": "profile",
+      "designation": "J4080B",
+      "name": "J4080B 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4080C",
+      "kind": "profile",
+      "designation": "J4080C",
+      "name": "J4080C 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4080E",
+      "kind": "profile",
+      "designation": "J4080E",
+      "name": "J4080E 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4080GE",
+      "kind": "profile",
+      "designation": "J4080GE",
+      "name": "J4080GE 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J4080J",
+      "kind": "profile",
+      "designation": "J4080J",
+      "name": "J4080J 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 40,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J6060",
+      "kind": "profile",
+      "designation": "J6060",
+      "name": "J6060 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 60,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J6060S",
+      "kind": "profile",
+      "designation": "J6060S",
+      "name": "J6060S 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 60,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J6630R",
+      "kind": "profile",
+      "designation": "J6630R",
+      "name": "J6630R 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 60,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J6630RA",
+      "kind": "profile",
+      "designation": "J6630RA",
+      "name": "J6630RA 型材",
+      "system_id": null,
+      "series": 30,
+      "width_mm": 60,
+      "height_mm": 60,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 7,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J8080",
+      "kind": "profile",
+      "designation": "J8080",
+      "name": "J8080 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J8080J",
+      "kind": "profile",
+      "designation": "J8080J",
+      "name": "J8080J 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J8840R",
+      "kind": "profile",
+      "designation": "J8840R",
+      "name": "J8840R 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-J8840RA",
+      "kind": "profile",
+      "designation": "J8840RA",
+      "name": "J8840RA 型材",
+      "system_id": "RAF-S40-8-M6",
+      "series": 40,
+      "width_mm": 80,
+      "height_mm": 80,
+      "diameter_mm": null,
+      "slot_width_mm": 8,
+      "slot_depth_mm": 8,
+      "stock_length_options_mm": [
+        3000,
+        6000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d10",
+      "kind": "shaft",
+      "designation": "shaft-d10",
+      "name": "shaft-d10 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 10,
+      "height_mm": 10,
+      "diameter_mm": 10,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d12",
+      "kind": "shaft",
+      "designation": "shaft-d12",
+      "name": "shaft-d12 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 12,
+      "height_mm": 12,
+      "diameter_mm": 12,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d13",
+      "kind": "shaft",
+      "designation": "shaft-d13",
+      "name": "shaft-d13 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 13,
+      "height_mm": 13,
+      "diameter_mm": 13,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d15",
+      "kind": "shaft",
+      "designation": "shaft-d15",
+      "name": "shaft-d15 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 15,
+      "height_mm": 15,
+      "diameter_mm": 15,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d16",
+      "kind": "shaft",
+      "designation": "shaft-d16",
+      "name": "shaft-d16 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 16,
+      "height_mm": 16,
+      "diameter_mm": 16,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d18",
+      "kind": "shaft",
+      "designation": "shaft-d18",
+      "name": "shaft-d18 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 18,
+      "height_mm": 18,
+      "diameter_mm": 18,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d20",
+      "kind": "shaft",
+      "designation": "shaft-d20",
+      "name": "shaft-d20 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 20,
+      "height_mm": 20,
+      "diameter_mm": 20,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d3",
+      "kind": "shaft",
+      "designation": "shaft-d3",
+      "name": "shaft-d3 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 3,
+      "height_mm": 3,
+      "diameter_mm": 3,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d4",
+      "kind": "shaft",
+      "designation": "shaft-d4",
+      "name": "shaft-d4 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 4,
+      "height_mm": 4,
+      "diameter_mm": 4,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d5",
+      "kind": "shaft",
+      "designation": "shaft-d5",
+      "name": "shaft-d5 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 5,
+      "height_mm": 5,
+      "diameter_mm": 5,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d6",
+      "kind": "shaft",
+      "designation": "shaft-d6",
+      "name": "shaft-d6 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 6,
+      "height_mm": 6,
+      "diameter_mm": 6,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    },
+    {
+      "id": "RAF-P-shaft-d8",
+      "kind": "shaft",
+      "designation": "shaft-d8",
+      "name": "shaft-d8 光轴",
+      "system_id": null,
+      "series": null,
+      "width_mm": 8,
+      "height_mm": 8,
+      "diameter_mm": 8,
+      "slot_width_mm": null,
+      "slot_depth_mm": null,
+      "stock_length_options_mm": [
+        1000,
+        2000,
+        3000
+      ],
+      "engineering_reference": null,
+      "data_status": "geometry_only"
+    }
+  ],
+  "products": [
+    {
+      "id": "RAF-C-ANGLE-20-6",
+      "kind": "connector",
+      "name": "20 系槽 6 外露直角角码",
+      "series": 20,
+      "slot_width_mm": 6,
+      "width_mm": 20,
+      "arm_a_mm": 38,
+      "arm_b_mm": 38,
+      "thickness_mm": 3,
+      "hole_diameter_mm": 5.2,
+      "holes_per_piece": 2
+    },
+    {
+      "id": "RAF-C-ANGLE-30-8",
+      "kind": "connector",
+      "name": "30 系槽 8 外露直角角码",
+      "series": 30,
+      "slot_width_mm": 8,
+      "width_mm": 30,
+      "arm_a_mm": 50,
+      "arm_b_mm": 50,
+      "thickness_mm": 4,
+      "hole_diameter_mm": 6.2,
+      "holes_per_piece": 2
+    },
+    {
+      "id": "RAF-C-ANGLE-40-8",
+      "kind": "connector",
+      "name": "40 系槽 8 外露直角角码",
+      "series": 40,
+      "slot_width_mm": 8,
+      "width_mm": 40,
+      "arm_a_mm": 60,
+      "arm_b_mm": 60,
+      "thickness_mm": 4,
+      "hole_diameter_mm": 6.2,
+      "holes_per_piece": 2
+    },
+    {
+      "id": "RAF-F-BOLT-M5X8",
+      "kind": "fastener",
+      "name": "M5×8 内六角螺栓",
+      "thread": "M5",
+      "length_mm": 8,
+      "drive": "inner_hex"
+    },
+    {
+      "id": "RAF-F-BOLT-M6X12",
+      "kind": "fastener",
+      "name": "M6×12 内六角螺栓",
+      "thread": "M6",
+      "length_mm": 12,
+      "drive": "inner_hex"
+    },
+    {
+      "id": "RAF-F-TNUT-6-M5",
+      "kind": "fastener",
+      "name": "槽 6 后装弹片螺母 M5",
+      "slot_width_mm": 6,
+      "thread": "M5",
+      "install": "post_install"
+    },
+    {
+      "id": "RAF-F-TNUT-8-M6",
+      "kind": "fastener",
+      "name": "槽 8 后装弹片螺母 M6",
+      "slot_width_mm": 8,
+      "thread": "M6",
+      "install": "post_install"
+    },
+    {
+      "id": "RAF-A-CAP-ANGLE-20",
+      "kind": "appearance",
+      "name": "20 系角码装饰盖",
+      "series": 20
+    },
+    {
+      "id": "RAF-A-CAP-ANGLE-30",
+      "kind": "appearance",
+      "name": "30 系角码装饰盖",
+      "series": 30
+    },
+    {
+      "id": "RAF-A-CAP-ANGLE-40",
+      "kind": "appearance",
+      "name": "40 系角码装饰盖",
+      "series": 40
+    },
+    {
+      "id": "RAF-A-FOOT-PLATE-20",
+      "kind": "foot",
+      "name": "20 系底脚连接板 + M8 调节脚",
+      "series": 20,
+      "stem_thread": "M8",
+      "foot_diameter_mm": 40
+    },
+    {
+      "id": "RAF-A-FOOT-PLATE-30",
+      "kind": "foot",
+      "name": "30 系底脚连接板 + M10 调节脚",
+      "series": 30,
+      "stem_thread": "M10",
+      "foot_diameter_mm": 50
+    },
+    {
+      "id": "RAF-A-FOOT-PLATE-40",
+      "kind": "foot",
+      "name": "40 系底脚连接板 + M10 调节脚",
+      "series": 40,
+      "stem_thread": "M10",
+      "foot_diameter_mm": 50
+    },
+    {
+      "id": "RAF-P-SHELF-BRACKET-20",
+      "kind": "panel_mount",
+      "name": "20 系层板底部小角码",
+      "series": 20,
+      "slot_width_mm": 6,
+      "profile_fastener": "M5×8 + 槽6 M5后装螺母",
+      "board_fastener": "4×12 木螺钉",
+      "board_thickness_min_mm": 15
+    },
+    {
+      "id": "RAF-P-SHELF-BRACKET-30",
+      "kind": "panel_mount",
+      "name": "30 系层板底部小角码",
+      "series": 30,
+      "slot_width_mm": 8,
+      "profile_fastener": "M6×12 + 槽8 M6后装螺母",
+      "board_fastener": "4×12 木螺钉",
+      "board_thickness_min_mm": 15
+    },
+    {
+      "id": "RAF-P-SHELF-BRACKET-40",
+      "kind": "panel_mount",
+      "name": "40 系层板底部小角码",
+      "series": 40,
+      "slot_width_mm": 8,
+      "profile_fastener": "M6×12 + 槽8 M6后装螺母",
+      "board_fastener": "4×12 木螺钉",
+      "board_thickness_min_mm": 15
+    },
+    {
+      "id": "RAF-P-PANEL-CLIP-20",
+      "kind": "panel_mount",
+      "name": "20 系后装面板夹",
+      "series": 20,
+      "slot_width_mm": 6,
+      "fastener": "M5×8 + 槽6 M5后装螺母",
+      "panel_thickness_range_mm": [
+        3,
+        8
+      ]
+    },
+    {
+      "id": "RAF-P-PANEL-CLIP-30",
+      "kind": "panel_mount",
+      "name": "30 系后装面板夹",
+      "series": 30,
+      "slot_width_mm": 8,
+      "fastener": "M6×12 + 槽8 M6后装螺母",
+      "panel_thickness_range_mm": [
+        3,
+        10
+      ]
+    },
+    {
+      "id": "RAF-P-PANEL-CLIP-40",
+      "kind": "panel_mount",
+      "name": "40 系后装面板夹",
+      "series": 40,
+      "slot_width_mm": 8,
+      "fastener": "M6×12 + 槽8 M6后装螺母",
+      "panel_thickness_range_mm": [
+        3,
+        10
+      ]
+    }
+  ],
+  "kits": [
+    {
+      "id": "RAF-KIT-JOINT-20-6-M5",
+      "name": "20 系槽 6 标准直角节点套装",
+      "components": [
+        {
+          "product_id": "RAF-C-ANGLE-20-6",
+          "qty": 1
+        },
+        {
+          "product_id": "RAF-F-BOLT-M5X8",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-F-TNUT-6-M5",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-A-CAP-ANGLE-20",
+          "qty": 1,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-JOINT-30-8-M6",
+      "name": "30 系槽 8 标准直角节点套装",
+      "components": [
+        {
+          "product_id": "RAF-C-ANGLE-30-8",
+          "qty": 1
+        },
+        {
+          "product_id": "RAF-F-BOLT-M6X12",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-F-TNUT-8-M6",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-A-CAP-ANGLE-30",
+          "qty": 1,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-JOINT-40-8-M6",
+      "name": "40 系槽 8 标准直角节点套装",
+      "components": [
+        {
+          "product_id": "RAF-C-ANGLE-40-8",
+          "qty": 1
+        },
+        {
+          "product_id": "RAF-F-BOLT-M6X12",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-F-TNUT-8-M6",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-A-CAP-ANGLE-40",
+          "qty": 1,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-SHELF-20-6-M5",
+      "name": "20 系木层板单点固定套装",
+      "components": [
+        {
+          "product_id": "RAF-P-SHELF-BRACKET-20",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-SHELF-30-8-M6",
+      "name": "30 系木层板单点固定套装",
+      "components": [
+        {
+          "product_id": "RAF-P-SHELF-BRACKET-30",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-SHELF-40-8-M6",
+      "name": "40 系木层板单点固定套装",
+      "components": [
+        {
+          "product_id": "RAF-P-SHELF-BRACKET-40",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-PANEL-20-6-M5",
+      "name": "20 系后装面板单点固定套装",
+      "components": [
+        {
+          "product_id": "RAF-P-PANEL-CLIP-20",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-PANEL-30-8-M6",
+      "name": "30 系后装面板单点固定套装",
+      "components": [
+        {
+          "product_id": "RAF-P-PANEL-CLIP-30",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-PANEL-40-8-M6",
+      "name": "40 系后装面板单点固定套装",
+      "components": [
+        {
+          "product_id": "RAF-P-PANEL-CLIP-40",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-FOOT-20",
+      "name": "20 系调平底脚套装",
+      "components": [
+        {
+          "product_id": "RAF-A-FOOT-PLATE-20",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-FOOT-30",
+      "name": "30 系调平底脚套装",
+      "components": [
+        {
+          "product_id": "RAF-A-FOOT-PLATE-30",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "RAF-KIT-FOOT-40",
+      "name": "40 系调平底脚套装",
+      "components": [
+        {
+          "product_id": "RAF-A-FOOT-PLATE-40",
+          "qty": 1
+        }
+      ]
+    }
+  ],
+  "unsupported_systems": [
+    {
+      "name": "15 系槽 6",
+      "reason": "尚无完整紧固件套装"
+    },
+    {
+      "name": "40 系槽 10",
+      "reason": "与 40 系槽 8 不通用，尚无完整紧固件套装"
+    },
+    {
+      "name": "45 系槽 10",
+      "reason": "尚无完整紧固件套装"
+    },
+    {
+      "name": "50 系槽 10",
+      "reason": "尚无完整紧固件套装"
+    }
+  ]
+}

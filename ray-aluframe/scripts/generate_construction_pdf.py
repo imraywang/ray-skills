@@ -217,29 +217,29 @@ def build_pdf(data: dict[str, Any], output: Path) -> None:
         grouped[key] += 1
         role = role_names.get(str(member.get("role", "")), str(member.get("role", "构件")))
         roles_by_key[key][role] += 1
-    rows = [["序号", "厂家货号", "型材", "长度", "数量", "合计长度", "对应构件"]]
+    rows = [["序号", "本目录编号", "型材", "长度", "数量", "合计长度", "对应构件"]]
     for index, ((pid, length), qty) in enumerate(sorted(grouped.items(), key=lambda item: (item[0][0], -item[0][1])), 1):
         profile = result["profiles"][pid]
         rows.append([
-            str(index), str(profile.get("part_number", "待确定")), f"{pid} / {profile.get('description', '')}",
+            str(index), str(profile.get("catalog_id", "待确定")), f"{pid} / {profile.get('description', '')}",
             f"{length:.0f}", str(qty), f"{length * qty:.0f}", "，".join(f"{role} {count}" for role, count in roles_by_key[(pid, length)].items()),
         ])
     story += [styled_table(rows, [9 * mm, 29 * mm, 36 * mm, 16 * mm, 12 * mm, 21 * mm, 45 * mm], small=True)]
 
     story += [p("连接件", styles["h2"])]
-    connector_rows = [["厂家", "货号", "名称", "数量", "状态"]]
-    for (manufacturer, part, description), qty in sorted(result["connector_counts"].items()):
+    connector_rows = [["本目录编号", "名称", "数量", "状态"]]
+    for (catalog_id, description, _), qty in sorted(result["connector_counts"].items()):
         connector_name = {
             "multi-way corner/tee connection kit": "多向角部/三通连接组件",
             "30-series slot-8 angle bracket set; P3060 beam end uses two brackets": "30 系列槽 8 角码套装；30x60 横梁每端双角码",
         }.get(description, description)
-        connector_rows.append([manufacturer if manufacturer and "TBD" not in manufacturer.upper() else "待确定", part if part and "TBD" not in part.upper() else "待确定", connector_name, str(qty), "待绑定商家" if "TBD" in part.upper() else "已指定"])
+        connector_rows.append([catalog_id or "待确定", connector_name, str(qty), "已绑定本目录" if catalog_id else "待确定"])
     if len(connector_rows) == 1:
-        connector_rows.append(["待确定", "待确定", "未提供", "-", "缺失"])
-    story += [styled_table(connector_rows, [24 * mm, 37 * mm, 65 * mm, 16 * mm, 26 * mm])]
+        connector_rows.append(["待确定", "未提供", "-", "缺失"])
+    story += [styled_table(connector_rows, [48 * mm, 76 * mm, 16 * mm, 28 * mm])]
 
     story += [p("板材与附件", styles["h2"])]
-    accessory_rows = [["类别", "名称", "数量", "货号", "状态"]]
+    accessory_rows = [["类别", "名称", "数量", "本目录编号", "状态"]]
     category_names = {"backing": "背板", "foot": "底脚", "shelf": "层板", "shelf_fastener": "层板固定", "panel_fastener": "面板固定", "appearance_optional": "外观选配"}
     accessory_names = {
         "left color-matched rigid back panel": "左侧同色刚性背板",
@@ -256,8 +256,8 @@ def build_pdf(data: dict[str, Any], output: Path) -> None:
         "back/display panel perimeter holder set": "背板/展示板周边固定夹套装",
         "angle bracket cover, optional": "角码装饰盖，可选",
     }
-    for (category, manufacturer, part, description), qty in sorted(result["accessory_counts"].items()):
-        accessory_rows.append([category_names.get(category, category), accessory_names.get(description, description), str(qty), part if part and "TBD" not in part.upper() else "待确定", "待绑定商家" if "TBD" in part.upper() else "已指定"])
+    for (category, catalog_id, _, description), qty in sorted(result["accessory_counts"].items()):
+        accessory_rows.append([category_names.get(category, category), accessory_names.get(description, description), str(qty), catalog_id or "按尺寸制作", "已绑定本目录" if catalog_id else "设计物料"])
     if len(accessory_rows) == 1:
         accessory_rows.append(["-", "未提供", "-", "-", "缺失"])
     story += [styled_table(accessory_rows, [20 * mm, 72 * mm, 14 * mm, 37 * mm, 25 * mm])]
@@ -304,7 +304,7 @@ def build_pdf(data: dict[str, Any], output: Path) -> None:
     blockers = result["blockers"]
     blocker_summary = []
     if any("连接件" in item for item in blockers):
-        blocker_summary.append("连接件的具体厂家、货号和每个节点的安装方式")
+        blocker_summary.append("连接套装的本目录编号、实际供货差异和每个节点的安装方式")
     if any("加工" in item for item in blockers):
         blocker_summary.append("各构件是否需要端面攻丝、通孔或其他加工")
     if any("附件" in item for item in blockers):
@@ -317,8 +317,8 @@ def build_pdf(data: dict[str, Any], output: Path) -> None:
 
     story += [p("发给商家的确认问题", styles["h2"])]
     questions = [
-        "所列型材与连接件是否同一槽系，可直接配套？",
-        "连接件是否包含螺栓和螺母，缺少哪些？",
+        "现货是否完整符合清单中的本目录参数？如不同，请逐项标出差异。",
+        "连接套装是否包含清单所列螺栓和槽螺母，缺少哪些？",
         "请按最终连接方式给出精确下料扣减、孔位与加工要求。",
         "切割和孔位公差是多少，最长件如何包装运输？",
         "请复核满载书籍情况下的连接方式、底脚和防倾倒措施。",
