@@ -8,8 +8,9 @@
 4. 节点
 5. 载荷
 6. 附件与加工
-7. 外观可视化
-8. 就绪判定
+7. 参考图拓扑
+8. 外观可视化
+9. 就绪判定
 
 ## 1. 顶层结构
 
@@ -24,6 +25,7 @@
   "ground_points": [],
   "loads": [],
   "accessories": [],
+  "reference_topology": {},
   "visuals": []
 }
 ```
@@ -117,7 +119,39 @@
 
 层板、脚轮、端盖、槽盖、把手和墙地固定件都放在附件。孔位必须绑定到构件编号,包含距端面、所在面、孔径、深度/贯穿和螺纹规格。
 
-## 7. 外观可视化
+## 7. 参考图拓扑
+
+从参考图还原时,先把正面可见分区写成可核对数据。它约束“几列、每列几格”,避免整体轮廓相似但柜门、抽屉或层数认错:
+
+```json
+{
+  "reference_topology": {
+    "front_plane_y_mm": 0,
+    "regions": [
+      {
+        "id": "LOWER-LEFT",
+        "label": "下柜左侧",
+        "x_range_mm": [0, 780],
+        "z_range_mm": [80, 900],
+        "expected_rows": 3,
+        "confidence": "high"
+      },
+      {
+        "id": "LOWER-RIGHT",
+        "label": "下柜右侧",
+        "x_range_mm": [780, 1200],
+        "z_range_mm": [80, 900],
+        "expected_rows": 1,
+        "confidence": "high"
+      }
+    ]
+  }
+}
+```
+
+`x_range_mm` 和 `z_range_mm` 是该正面区域的边界。`expected_rows` 由参考图中明确可见的水平分格得到。脚本只统计位于正面、横跨整个区域、且处于上下边界之间的横向构件。无法看清时使用 `confidence=medium/low`,并在交付前请用户确认,不得把推测写成高置信度事实。
+
+## 8. 外观可视化
 
 为生成接近实物的装配效果图,可选填 `visuals`。它只描述外观,不能代替采购清单:
 
@@ -134,7 +168,7 @@
 
 调节脚使用 `{"type":"leveling_foot","at":[0,0,0],"stem_mm":35,"pad_diameter_mm":42}`。脚轮使用 `{"type":"caster","at":[0,0,80],"stem_mm":28,"wheel_diameter_mm":65,"wheel_width_mm":24}`。面板洞孔仅作效果时可加 `"pattern":"pegboard"`。`visuals` 中出现的物件仍必须在 `accessories` 中有对应采购项。
 
-## 8. 就绪判定
+## 9. 就绪判定
 
 - **草案**:数据或几何有错误,无法完成检查。
 - **待复核**:结构可表达,但仍有本目录编号、连接、加工、强度、载荷或稳定措施未确认。

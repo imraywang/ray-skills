@@ -73,7 +73,7 @@
   };
   const presets = {
     iso: [-Math.PI / 4, 0.34],
-    front: [-Math.PI / 2, 0.02],
+    front: [Math.PI / 2, 0.02],
     side: [0, 0.02],
     top: [-Math.PI / 2, Math.PI / 2 - 0.015],
   };

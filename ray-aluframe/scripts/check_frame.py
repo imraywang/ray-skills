@@ -370,6 +370,67 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
         if disconnected:
             errors.append("存在未连通构件: " + ", ".join(sorted(disconnected)))
 
+    topology_results: list[dict[str, Any]] = []
+    reference_topology = data.get("reference_topology")
+    if reference_topology:
+        front_y = reference_topology.get("front_plane_y_mm")
+        regions = reference_topology.get("regions", [])
+        if not isinstance(front_y, (int, float)) or not isinstance(regions, list) or not regions:
+            blockers.append("参考图拓扑信息不完整，无法核对正面分区")
+        else:
+            for region in regions:
+                label = str(region.get("label") or region.get("id") or "未命名区域")
+                x_range = region.get("x_range_mm")
+                z_range = region.get("z_range_mm")
+                expected_rows = region.get("expected_rows")
+                valid_range = (
+                    isinstance(x_range, list)
+                    and isinstance(z_range, list)
+                    and len(x_range) == len(z_range) == 2
+                    and all(isinstance(value, (int, float)) for value in x_range + z_range)
+                    and float(x_range[0]) < float(x_range[1])
+                    and float(z_range[0]) < float(z_range[1])
+                )
+                if not valid_range or not isinstance(expected_rows, int) or expected_rows < 1:
+                    blockers.append(f"参考图拓扑区域 {label}: 范围或格数无效")
+                    continue
+                x_min, x_max = map(float, x_range)
+                z_min, z_max = map(float, z_range)
+                internal_levels: set[float] = set()
+                for item in members.values():
+                    start, end = item.get("start"), item.get("end")
+                    if not (isinstance(start, list) and isinstance(end, list)):
+                        continue
+                    axis, _ = axis_and_length(start, end)
+                    if axis != "x":
+                        continue
+                    if abs(float(start[1]) - float(front_y)) > EPS or abs(float(end[1]) - float(front_y)) > EPS:
+                        continue
+                    if abs(float(start[2]) - float(end[2])) > EPS:
+                        continue
+                    level = float(start[2])
+                    if not (z_min + EPS < level < z_max - EPS):
+                        continue
+                    member_x_min = min(float(start[0]), float(end[0]))
+                    member_x_max = max(float(start[0]), float(end[0]))
+                    if member_x_min <= x_min + EPS and member_x_max >= x_max - EPS:
+                        internal_levels.add(round(level, 6))
+                actual_rows = len(internal_levels) + 1
+                passed = actual_rows == expected_rows
+                topology_results.append(
+                    {
+                        "id": str(region.get("id") or label),
+                        "label": label,
+                        "expected_rows": expected_rows,
+                        "actual_rows": actual_rows,
+                        "internal_levels_mm": sorted(internal_levels),
+                        "status": "PASS" if passed else "FAIL",
+                        "confidence": str(region.get("confidence") or "未标注"),
+                    }
+                )
+                if not passed:
+                    blockers.append(f"参考图拓扑不符: {label}应为 {expected_rows} 格，模型为 {actual_rows} 格")
+
     for pid, profile in profiles.items():
         required = ("catalog_id", "stock_length_mm")
         missing = [key for key in required if is_tbd(profile.get(key))]
@@ -468,6 +529,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
         "cut_plans": cut_plans,
         "beam_results": beam_results,
         "machining_rows": machining_rows,
+        "topology_results": topology_results,
     }
 
 
@@ -486,6 +548,19 @@ def markdown(data: dict[str, Any], result: dict[str, Any]) -> str:
         lines += [f"## {title}", ""]
         items = result[key]
         lines += [f"- {item}" for item in items] if items else ["- 无"]
+        lines.append("")
+
+    if result["topology_results"]:
+        lines += [
+            "## 参考图拓扑核对",
+            "",
+            "| 正面区域 | 参考图 | 当前模型 | 识别置信度 | 结果 |",
+            "|---|---:|---:|---|---|",
+        ]
+        for item in result["topology_results"]:
+            lines.append(
+                f"| {item['label']} | {item['expected_rows']} 格 | {item['actual_rows']} 格 | {item['confidence']} | {item['status']} |"
+            )
         lines.append("")
 
     lines += ["## 横梁初查", "", "| 载荷 | 构件 | 变形 mm | 筛查值 mm | 结果 | 强度 |", "|---|---|---:|---:|---|---|"]
