@@ -81,6 +81,8 @@ python3 <skill-dir>/scripts/check_frame.py design.json --report report.md
 python3 <skill-dir>/scripts/render_frame_svg.py design.json --output preview.svg
 ```
 
+构件密集导致标签遮挡时,加 `--labels none` 生成给用户确认的干净预览;完整构件编号仍以检查报告和设计清单为准。
+
 脚本负责:
 
 - 检查构件编号、坐标、重复杆件和悬空端点

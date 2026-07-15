@@ -29,7 +29,7 @@ def role_color(role: str) -> str:
     return "#7c3aed"
 
 
-def svg(data: dict[str, Any], width: int = 1200, height: int = 820) -> str:
+def svg(data: dict[str, Any], width: int = 1200, height: int = 820, labels_mode: str = "all") -> str:
     members = data.get("members", [])
     points = [point for member in members for point in (member.get("start"), member.get("end")) if isinstance(point, list) and len(point) == 3]
     if not points:
@@ -73,7 +73,8 @@ def svg(data: dict[str, Any], width: int = 1200, height: int = 820) -> str:
         out.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{color}" stroke-width="6" stroke-linecap="round"/>')
         mid_x, mid_y = (x1 + x2) / 2, (y1 + y2) / 2
         label = html.escape(str(member.get("id", "")))
-        labels.append((mid_x, mid_y, label))
+        if labels_mode == "all":
+            labels.append((mid_x, mid_y, label))
 
     joint_points = {tuple(joint["at"]) for joint in data.get("joints", []) if isinstance(joint.get("at"), list) and len(joint["at"]) == 3}
     for point in joint_points:
@@ -120,10 +121,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("design", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--labels", choices=("all", "none"), default="all")
     args = parser.parse_args()
     try:
         data = json.loads(args.design.read_text(encoding="utf-8"))
-        args.output.write_text(svg(data), encoding="utf-8")
+        args.output.write_text(svg(data, labels_mode=args.labels), encoding="utf-8")
     except (OSError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
         print(f"无法生成预览: {exc}", file=sys.stderr)
         return 2
