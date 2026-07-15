@@ -9,6 +9,14 @@
   const design = payload.design;
   const members = design.members || [];
   const profiles = Object.fromEntries((design.profiles || []).map((profile) => [profile.id, profile]));
+  const catalogProducts = Object.fromEntries((payload.catalog?.products || []).map((product) => [product.id, product]));
+  const defaultAngleSpec = catalogProducts['RAF-C-ANGLE-30-8'] || {
+    width_mm: 30,
+    arm_a_mm: 50,
+    arm_b_mm: 50,
+    thickness_mm: 4,
+    hole_diameter_mm: 6.2,
+  };
   const memberMap = Object.fromEntries(members.map((member) => [member.id, member]));
   const roleNames = { post: '立柱', 'level beam': '层横梁', 'side beam': '侧横梁' };
   const allPoints = members.flatMap((member) => [member.start, member.end]);
@@ -391,9 +399,9 @@
     });
   }
 
-  function uniqueHorizontalDirections(joint) {
+  function horizontalConnections(joint) {
     const origin = toWorld(joint.at);
-    const directions = [];
+    const connections = [];
     (joint.member_ids || []).forEach((id) => {
       const member = memberMap[id];
       if (!member) return;
@@ -402,50 +410,90 @@
       const other = a.distanceTo(origin) > b.distanceTo(origin) ? a : b;
       const direction = other.sub(origin).normalize();
       if (Math.abs(direction.y) > 0.25) return;
-      if (!directions.some((known) => Math.abs(known.dot(direction)) > 0.985)) directions.push(direction);
+      connections.push({ direction, member, profile: profiles[member.profile_id] || {} });
     });
-    return directions;
+    return connections;
   }
 
   function createBracket(joint) {
-    const directions = uniqueHorizontalDirections(joint);
-    if (!directions.length) return;
+    const connections = horizontalConnections(joint);
+    if (!connections.length) return;
     const origin = toWorld(joint.at);
-    const requested = THREE.MathUtils.clamp(Math.round(Number(joint.connector?.qty || directions.length)), 1, 8);
-    for (let index = 0; index < requested; index += 1) {
-      const direction = directions[index % directions.length];
-      const group = new THREE.Group();
-      const yaw = Math.atan2(-direction.z, direction.x);
-      group.rotation.y = yaw;
-      const normal = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
-      let visibleSign;
-      if (Math.abs(normal.z) > 0.25) {
-        visibleSign = normal.z > 0 ? -1 : 1;
-      } else {
-        const outwardX = origin.x < cameraTarget.x ? -1 : 1;
-        visibleSign = normal.x * outwardX >= 0 ? 1 : -1;
-      }
-      const sideSign = Math.floor(index / directions.length) % 2 ? -visibleSign : visibleSign;
-      group.position.copy(origin).addScaledVector(normal, sideSign * 18);
-      group.position.y += 1.5;
-      const horizontal = new THREE.Mesh(new THREE.BoxGeometry(30, 5, 26), materials.bracket);
-      horizontal.position.set(15, 2.5, 0);
-      const vertical = new THREE.Mesh(new THREE.BoxGeometry(5, 30, 26), materials.bracket);
-      vertical.position.set(2.5, 15, 0);
-      const boltGeometry = new THREE.CylinderGeometry(3.7, 3.7, 3.2, 12);
-      const boltA = new THREE.Mesh(boltGeometry, materials.bolt);
-      boltA.rotation.x = Math.PI / 2;
-      boltA.position.set(16, 5.2, sideSign * 14.5);
-      const boltB = boltA.clone();
-      boltB.position.set(5.2, 17, sideSign * 14.5);
-      [horizontal, vertical, boltA, boltB].forEach((part) => {
-        part.castShadow = true;
-        part.receiveShadow = true;
+    const width = Number(defaultAngleSpec.width_mm || 30);
+    const armA = Number(defaultAngleSpec.arm_a_mm || 50);
+    const armB = Number(defaultAngleSpec.arm_b_mm || 50);
+    const thickness = Number(defaultAngleSpec.thickness_mm || 4);
+    const holeRadius = Number(defaultAngleSpec.hole_diameter_mm || 6.2) / 2;
+    const boltRadius = Math.max(4.2, holeRadius + 1.3);
+    const ribShape = new THREE.Shape([
+      new THREE.Vector2(thickness, thickness),
+      new THREE.Vector2(Math.min(30, armA - 4), thickness),
+      new THREE.Vector2(thickness, Math.min(30, armB - 4)),
+    ]);
+    const ribGeometry = new THREE.ExtrudeGeometry(ribShape, {
+      depth: 2.4,
+      steps: 1,
+      bevelEnabled: true,
+      bevelSize: 0.45,
+      bevelThickness: 0.45,
+      bevelSegments: 1,
+    });
+    connections.forEach(({ direction, profile, member }) => {
+      const tallBeam = Math.max(Number(profile.width_mm || 30), Number(profile.height_mm || 30)) >= 55;
+      const verticalSigns = tallBeam ? [-1, 1] : [origin.y <= bounds[2][0] + 120 ? 1 : -1];
+      verticalSigns.forEach((verticalSign) => {
+        const group = new THREE.Group();
+        group.rotation.y = Math.atan2(-direction.z, direction.x);
+        const beamHalfHeight = tallBeam ? 30 : 15;
+        group.position.copy(origin)
+          .addScaledVector(direction, 15)
+          .add(new THREE.Vector3(0, verticalSign * beamHalfHeight, 0));
+        group.scale.y = verticalSign;
+
+        const horizontalPlate = new THREE.Mesh(
+          new THREE.BoxGeometry(armA, thickness, width),
+          materials.bracket,
+        );
+        horizontalPlate.position.set(armA / 2, thickness / 2, 0);
+        const verticalPlate = new THREE.Mesh(
+          new THREE.BoxGeometry(thickness, armB, width),
+          materials.bracket,
+        );
+        verticalPlate.position.set(thickness / 2, armB / 2, 0);
+
+        const ribA = new THREE.Mesh(ribGeometry, materials.bracket);
+        ribA.position.z = width / 2 - 3;
+        const ribB = ribA.clone();
+        ribB.position.z = -width / 2 + 0.6;
+
+        const washerGeometry = new THREE.CylinderGeometry(boltRadius + 1.5, boltRadius + 1.5, 1.2, 20);
+        const boltGeometry = new THREE.CylinderGeometry(boltRadius, boltRadius, 3.2, 16);
+        const horizontalWasher = new THREE.Mesh(washerGeometry, materials.bracket);
+        horizontalWasher.position.set(Math.min(31, armA * 0.62), thickness + 0.6, 0);
+        const horizontalBolt = new THREE.Mesh(boltGeometry, materials.bolt);
+        horizontalBolt.position.set(horizontalWasher.position.x, thickness + 2.1, 0);
+        const verticalWasher = new THREE.Mesh(washerGeometry, materials.bracket);
+        verticalWasher.rotation.z = Math.PI / 2;
+        verticalWasher.position.set(thickness + 0.6, Math.min(31, armB * 0.62), 0);
+        const verticalBolt = new THREE.Mesh(boltGeometry, materials.bolt);
+        verticalBolt.rotation.z = Math.PI / 2;
+        verticalBolt.position.set(thickness + 2.1, verticalWasher.position.y, 0);
+
+        const parts = [horizontalPlate, verticalPlate, ribA, ribB, horizontalWasher, horizontalBolt, verticalWasher, verticalBolt];
+        parts.forEach((part) => {
+          part.castShadow = true;
+          part.receiveShadow = true;
+        });
+        group.add(...parts);
+        group.userData = {
+          kind: 'connector',
+          jointId: joint.id,
+          memberId: member.id,
+          catalogId: 'RAF-C-ANGLE-30-8',
+        };
+        hardwareRoot.add(group);
       });
-      group.add(horizontal, vertical, boltA, boltB);
-      group.userData = { kind: 'connector', jointId: joint.id };
-      hardwareRoot.add(group);
-    }
+    });
   }
 
   function createFoot(foot) {
