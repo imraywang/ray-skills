@@ -2,14 +2,14 @@
   "schema_version": 1,
   "catalog_name": "Ray Aluframe Product Catalog",
   "catalog_owner": "Ray Skills",
-  "catalog_version": "2026.07.15-4",
+  "catalog_version": "2026.07.15-5",
   "built_on": "2026-07-15",
   "runtime_policy": "self_contained_no_external_lookup",
   "coverage": {
     "systems": 3,
     "profiles_and_shafts": 202,
     "engineering_reference_profiles": 7,
-    "standard_products": 25,
+    "standard_products": 56,
     "complete_kits": 12,
     "supplier_profiles": 59
   },
@@ -20,7 +20,8 @@
     "40 系槽 8 与 40 系槽 10 永不自动混配。",
     "供应商价格是采集快照，统一按元/米保存；整支长度按 6100 mm 计算，未显示价格的页面不推测。",
     "供应商壁厚和米重可用于选型比较，但没有惯性参数时不得用于承载或挠度计算。",
-    "已知欧标 30/40 系槽 8 供应商型材可匹配本目录同槽系五金；这只证明名义搭配，询价时仍需商家确认定位凸台、中心孔和螺纹。"
+    "已知欧标 30/40 系槽 8 供应商型材可匹配本目录同槽系五金；这只证明名义搭配，询价时仍需商家确认定位凸台、中心孔和螺纹。",
+    "脚轮和支撑杆等额定能力不得按外形推测；目录给出选型位置，但最终额定值必须来自具体商品并写入方案。"
   ],
   "systems": [
     {
@@ -4902,6 +4903,198 @@
   ],
   "products": [
     {
+      "id": "RAF-A-CAP-ANGLE-20",
+      "kind": "appearance",
+      "name": "20 系角码装饰盖",
+      "series": 20
+    },
+    {
+      "id": "RAF-A-CAP-ANGLE-30",
+      "kind": "appearance",
+      "name": "30 系角码装饰盖",
+      "series": 30
+    },
+    {
+      "id": "RAF-A-CAP-ANGLE-40",
+      "kind": "appearance",
+      "name": "40 系角码装饰盖",
+      "series": 40
+    },
+    {
+      "id": "RAF-A-CASTER-100-BRAKE",
+      "name": "100 mm 平板刹车脚轮",
+      "category": "caster",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "wheel_diameter_mm": 100,
+      "rated_load_kg_each": null,
+      "rating_status": "supplier_required"
+    },
+    {
+      "id": "RAF-A-CASTER-50-BRAKE",
+      "name": "50 mm 平板刹车脚轮",
+      "category": "caster",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "wheel_diameter_mm": 50,
+      "rated_load_kg_each": null,
+      "rating_status": "supplier_required"
+    },
+    {
+      "id": "RAF-A-CASTER-75-BRAKE",
+      "name": "75 mm 平板刹车脚轮",
+      "category": "caster",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "wheel_diameter_mm": 75,
+      "rated_load_kg_each": null,
+      "rating_status": "supplier_required"
+    },
+    {
+      "id": "RAF-A-CASTER-PLATE-30",
+      "name": "30 系脚轮转接板",
+      "category": "caster_adapter",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 30,
+      "bolt_pattern": "按所选脚轮底板复核"
+    },
+    {
+      "id": "RAF-A-CASTER-PLATE-40",
+      "name": "40 系脚轮转接板",
+      "category": "caster_adapter",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 40,
+      "bolt_pattern": "按所选脚轮底板复核"
+    },
+    {
+      "id": "RAF-A-FLOOR-ANCHOR-30",
+      "name": "30 系落地固定片",
+      "category": "floor_anchor",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 30,
+      "installation": "型材槽固定；地面锚栓按地面材质另选"
+    },
+    {
+      "id": "RAF-A-FLOOR-ANCHOR-40",
+      "name": "40 系落地固定片",
+      "category": "floor_anchor",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 40,
+      "installation": "型材槽固定；地面锚栓按地面材质另选"
+    },
+    {
+      "id": "RAF-A-FOOT-PLATE-20",
+      "kind": "foot",
+      "name": "20 系底脚连接板 + M8 调节脚",
+      "series": 20,
+      "stem_thread": "M8",
+      "foot_diameter_mm": 40
+    },
+    {
+      "id": "RAF-A-FOOT-PLATE-30",
+      "kind": "foot",
+      "name": "30 系底脚连接板 + M10 调节脚",
+      "series": 30,
+      "stem_thread": "M10",
+      "foot_diameter_mm": 50
+    },
+    {
+      "id": "RAF-A-FOOT-PLATE-40",
+      "kind": "foot",
+      "name": "40 系底脚连接板 + M10 调节脚",
+      "series": 40,
+      "stem_thread": "M10",
+      "foot_diameter_mm": 50
+    },
+    {
+      "id": "RAF-A-LEVEL-M10",
+      "name": "M10 橡胶调节脚",
+      "category": "leveling_foot",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "thread": "M10"
+    },
+    {
+      "id": "RAF-A-LEVEL-M12",
+      "name": "M12 橡胶调节脚",
+      "category": "leveling_foot",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "thread": "M12"
+    },
+    {
+      "id": "RAF-A-LEVEL-M8",
+      "name": "M8 橡胶调节脚",
+      "category": "leveling_foot",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "thread": "M8"
+    },
+    {
+      "id": "RAF-B-ACRYLIC-CLEAR-5",
+      "kind": "panel_material",
+      "name": "5 mm 透明亚克力板",
+      "material": "acrylic",
+      "thickness_mm": 5,
+      "finish": "clear",
+      "data_status": "catalog_material_spec",
+      "purchase_note": "钻孔和边缘加工需避免应力开裂"
+    },
+    {
+      "id": "RAF-B-PC-FLUTED-5",
+      "kind": "panel_material",
+      "name": "5 mm 半透明长虹 PC 板",
+      "material": "polycarbonate",
+      "thickness_mm": 5,
+      "finish": "fluted_translucent",
+      "data_status": "catalog_material_spec",
+      "purchase_note": "按门板净尺寸开料，条纹方向保持竖向"
+    },
+    {
+      "id": "RAF-B-PLYWOOD-9",
+      "kind": "panel_material",
+      "name": "9 mm 木质多层板",
+      "material": "plywood",
+      "thickness_mm": 9,
+      "finish": "unfinished",
+      "data_status": "catalog_material_spec",
+      "purchase_note": "封边和表面处理按使用环境确认"
+    },
+    {
+      "id": "RAF-C-ANCHOR-20-6",
+      "name": "20 系槽 6 内置锚式连接件",
+      "category": "internal_connector",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 20,
+      "slot_width_mm": 6,
+      "machining": "端面中心孔攻丝并按连接件要求开工艺孔"
+    },
+    {
+      "id": "RAF-C-ANCHOR-30-8",
+      "name": "30 系槽 8 内置锚式连接件",
+      "category": "internal_connector",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 30,
+      "slot_width_mm": 8,
+      "machining": "端面中心孔攻丝并按连接件要求开工艺孔"
+    },
+    {
+      "id": "RAF-C-ANCHOR-40-8",
+      "name": "40 系槽 8 内置锚式连接件",
+      "category": "internal_connector",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 40,
+      "slot_width_mm": 8,
+      "machining": "端面中心孔攻丝并按连接件要求开工艺孔"
+    },
+    {
       "id": "RAF-C-ANGLE-20-6",
       "kind": "connector",
       "name": "20 系槽 6 外露直角角码",
@@ -4941,6 +5134,281 @@
       "holes_per_piece": 2
     },
     {
+      "id": "RAF-C-END-20-6",
+      "name": "20 系槽 6 端面连接件",
+      "category": "end_connector",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 20,
+      "slot_width_mm": 6,
+      "machining": "端面中心孔攻丝"
+    },
+    {
+      "id": "RAF-C-END-30-8",
+      "name": "30 系槽 8 端面连接件",
+      "category": "end_connector",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 30,
+      "slot_width_mm": 8,
+      "machining": "端面中心孔攻丝"
+    },
+    {
+      "id": "RAF-C-END-40-8",
+      "name": "40 系槽 8 端面连接件",
+      "category": "end_connector",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 40,
+      "slot_width_mm": 8,
+      "machining": "端面中心孔攻丝"
+    },
+    {
+      "id": "RAF-C-FLAT-20",
+      "name": "20 系两孔平连接片",
+      "category": "flat_plate",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 20,
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M5X8",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-F-TNUT-6-M5",
+          "qty": 2
+        }
+      ]
+    },
+    {
+      "id": "RAF-C-FLAT-30",
+      "name": "30 系两孔平连接片",
+      "category": "flat_plate",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 30,
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M6X12",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-F-TNUT-8-M6",
+          "qty": 2
+        }
+      ]
+    },
+    {
+      "id": "RAF-C-FLAT-40",
+      "name": "40 系两孔平连接片",
+      "category": "flat_plate",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "series": 40,
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M6X12",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-F-TNUT-8-M6",
+          "qty": 2
+        }
+      ]
+    },
+    {
+      "id": "RAF-D-BRUSH-SEAL",
+      "name": "柜门防尘毛条",
+      "category": "door_seal",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "length": "按门周长裁切"
+    },
+    {
+      "id": "RAF-D-CAM-LOCK",
+      "name": "柜门转舌锁",
+      "category": "door_lock",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "panel_thickness_range_mm": [
+        3,
+        12
+      ],
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M4X12",
+          "qty": 2
+        }
+      ]
+    },
+    {
+      "id": "RAF-D-GAS-STRUT-ADJ",
+      "name": "下翻门可调支撑杆",
+      "category": "door_restraint",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "force_selection": "按门板重量与支点位置计算后选型",
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M4X12",
+          "qty": 4
+        },
+        {
+          "product_id": "RAF-F-TNUT-6-M4",
+          "qty": 4
+        }
+      ]
+    },
+    {
+      "id": "RAF-D-HINGE-40X40",
+      "kind": "door_hardware",
+      "name": "40×40 mm 表装合页",
+      "width_mm": 40,
+      "height_mm": 40,
+      "leaf_thickness_mm": 4,
+      "hole_diameter_mm": 5.2,
+      "fastener": "M5×8 螺栓 + 槽6 M5后装螺母",
+      "data_status": "catalog_generic_geometry",
+      "purchase_note": "按门框槽系核对孔距和螺栓长度",
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M5X8",
+          "qty": 4
+        },
+        {
+          "product_id": "RAF-F-TNUT-6-M5",
+          "qty": 4
+        }
+      ]
+    },
+    {
+      "id": "RAF-D-KNOB-25",
+      "kind": "door_hardware",
+      "name": "直径 25 mm 圆形门把手",
+      "diameter_mm": 25,
+      "projection_mm": 22,
+      "fastener": "M4 穿板螺钉 1 颗",
+      "data_status": "catalog_generic_geometry",
+      "purchase_note": "螺钉长度按门板和垫片总厚度选择",
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M4X12",
+          "qty": 1
+        }
+      ]
+    },
+    {
+      "id": "RAF-D-LIMIT-CHAIN",
+      "name": "下翻门双侧限位链",
+      "category": "door_restraint",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "configuration": "左右各一条",
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M4X12",
+          "qty": 4
+        },
+        {
+          "product_id": "RAF-F-TNUT-6-M4",
+          "qty": 4
+        }
+      ]
+    },
+    {
+      "id": "RAF-D-MAGNET-45",
+      "kind": "door_hardware",
+      "name": "45 mm 柜门磁吸",
+      "length_mm": 45,
+      "width_mm": 15,
+      "height_mm": 13,
+      "fastener": "M4 槽螺母固定底座 + 门板吸片",
+      "data_status": "catalog_generic_geometry",
+      "purchase_note": "吸力和安装孔距随实际商品复核",
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M4X12",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-F-TNUT-6-M4",
+          "qty": 2
+        }
+      ]
+    },
+    {
+      "id": "RAF-D-PANEL-GASKET-6",
+      "name": "槽 6 板材嵌条",
+      "category": "panel_gasket",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "slot_width_mm": 6,
+      "panel_thickness_range_mm": [
+        3,
+        6
+      ]
+    },
+    {
+      "id": "RAF-D-PANEL-GASKET-8",
+      "name": "槽 8 板材嵌条",
+      "category": "panel_gasket",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "slot_width_mm": 8,
+      "panel_thickness_range_mm": [
+        4,
+        8
+      ]
+    },
+    {
+      "id": "RAF-D-ROLLER-CATCH",
+      "name": "柜门滚轮碰珠",
+      "category": "door_catch",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "fastener_components": [
+        {
+          "product_id": "RAF-F-BOLT-M4X12",
+          "qty": 2
+        },
+        {
+          "product_id": "RAF-F-TNUT-6-M4",
+          "qty": 2
+        }
+      ]
+    },
+    {
+      "id": "RAF-D-SLIDE-RAIL",
+      "name": "双槽推拉门导轨",
+      "category": "sliding_door_rail",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "length": "按门洞净宽裁切",
+      "panel_thickness_range_mm": [
+        4,
+        6
+      ]
+    },
+    {
+      "id": "RAF-F-BOLT-M4X12",
+      "name": "M4×12 内六角螺栓",
+      "category": "fastener",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "thread": "M4",
+      "length_mm": 12
+    },
+    {
+      "id": "RAF-F-BOLT-M5X10",
+      "name": "M5×10 内六角螺栓",
+      "category": "fastener",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "thread": "M5",
+      "length_mm": 10
+    },
+    {
       "id": "RAF-F-BOLT-M5X8",
       "kind": "fastener",
       "name": "M5×8 内六角螺栓",
@@ -4957,6 +5425,15 @@
       "drive": "inner_hex"
     },
     {
+      "id": "RAF-F-TNUT-6-M4",
+      "name": "槽 6 后装螺母 M4",
+      "category": "fastener",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "thread": "M4",
+      "slot_width_mm": 6
+    },
+    {
       "id": "RAF-F-TNUT-6-M5",
       "kind": "fastener",
       "name": "槽 6 后装弹片螺母 M5",
@@ -4965,84 +5442,21 @@
       "install": "post_install"
     },
     {
+      "id": "RAF-F-TNUT-8-M5",
+      "name": "槽 8 后装螺母 M5",
+      "category": "fastener",
+      "data_status": "functional_spec_supplier_confirm",
+      "purchase_note": "按本目录规格询价；下单前让商家确认槽系、螺纹、安装空间和实际额定值。",
+      "thread": "M5",
+      "slot_width_mm": 8
+    },
+    {
       "id": "RAF-F-TNUT-8-M6",
       "kind": "fastener",
       "name": "槽 8 后装弹片螺母 M6",
       "slot_width_mm": 8,
       "thread": "M6",
       "install": "post_install"
-    },
-    {
-      "id": "RAF-A-CAP-ANGLE-20",
-      "kind": "appearance",
-      "name": "20 系角码装饰盖",
-      "series": 20
-    },
-    {
-      "id": "RAF-A-CAP-ANGLE-30",
-      "kind": "appearance",
-      "name": "30 系角码装饰盖",
-      "series": 30
-    },
-    {
-      "id": "RAF-A-CAP-ANGLE-40",
-      "kind": "appearance",
-      "name": "40 系角码装饰盖",
-      "series": 40
-    },
-    {
-      "id": "RAF-A-FOOT-PLATE-20",
-      "kind": "foot",
-      "name": "20 系底脚连接板 + M8 调节脚",
-      "series": 20,
-      "stem_thread": "M8",
-      "foot_diameter_mm": 40
-    },
-    {
-      "id": "RAF-A-FOOT-PLATE-30",
-      "kind": "foot",
-      "name": "30 系底脚连接板 + M10 调节脚",
-      "series": 30,
-      "stem_thread": "M10",
-      "foot_diameter_mm": 50
-    },
-    {
-      "id": "RAF-A-FOOT-PLATE-40",
-      "kind": "foot",
-      "name": "40 系底脚连接板 + M10 调节脚",
-      "series": 40,
-      "stem_thread": "M10",
-      "foot_diameter_mm": 50
-    },
-    {
-      "id": "RAF-P-SHELF-BRACKET-20",
-      "kind": "panel_mount",
-      "name": "20 系层板底部小角码",
-      "series": 20,
-      "slot_width_mm": 6,
-      "profile_fastener": "M5×8 + 槽6 M5后装螺母",
-      "board_fastener": "4×12 木螺钉",
-      "board_thickness_min_mm": 15
-    },
-    {
-      "id": "RAF-P-SHELF-BRACKET-30",
-      "kind": "panel_mount",
-      "name": "30 系层板底部小角码",
-      "series": 30,
-      "slot_width_mm": 8,
-      "profile_fastener": "M6×12 + 槽8 M6后装螺母",
-      "board_fastener": "4×12 木螺钉",
-      "board_thickness_min_mm": 15
-    },
-    {
-      "id": "RAF-P-SHELF-BRACKET-40",
-      "kind": "panel_mount",
-      "name": "40 系层板底部小角码",
-      "series": 40,
-      "slot_width_mm": 8,
-      "profile_fastener": "M6×12 + 槽8 M6后装螺母",
-      "board_fastener": "4×12 木螺钉",
-      "board_thickness_min_mm": 15
     },
     {
       "id": "RAF-P-PANEL-CLIP-20",
@@ -5081,67 +5495,34 @@
       ]
     },
     {
-      "id": "RAF-D-HINGE-40X40",
-      "kind": "door_hardware",
-      "name": "40×40 mm 表装合页",
-      "width_mm": 40,
-      "height_mm": 40,
-      "leaf_thickness_mm": 4,
-      "hole_diameter_mm": 5.2,
-      "fastener": "M5×8 螺栓 + 槽6 M5后装螺母",
-      "data_status": "catalog_generic_geometry",
-      "purchase_note": "按门框槽系核对孔距和螺栓长度"
+      "id": "RAF-P-SHELF-BRACKET-20",
+      "kind": "panel_mount",
+      "name": "20 系层板底部小角码",
+      "series": 20,
+      "slot_width_mm": 6,
+      "profile_fastener": "M5×8 + 槽6 M5后装螺母",
+      "board_fastener": "4×12 木螺钉",
+      "board_thickness_min_mm": 15
     },
     {
-      "id": "RAF-D-KNOB-25",
-      "kind": "door_hardware",
-      "name": "直径 25 mm 圆形门把手",
-      "diameter_mm": 25,
-      "projection_mm": 22,
-      "fastener": "M4 穿板螺钉 1 颗",
-      "data_status": "catalog_generic_geometry",
-      "purchase_note": "螺钉长度按门板和垫片总厚度选择"
+      "id": "RAF-P-SHELF-BRACKET-30",
+      "kind": "panel_mount",
+      "name": "30 系层板底部小角码",
+      "series": 30,
+      "slot_width_mm": 8,
+      "profile_fastener": "M6×12 + 槽8 M6后装螺母",
+      "board_fastener": "4×12 木螺钉",
+      "board_thickness_min_mm": 15
     },
     {
-      "id": "RAF-D-MAGNET-45",
-      "kind": "door_hardware",
-      "name": "45 mm 柜门磁吸",
-      "length_mm": 45,
-      "width_mm": 15,
-      "height_mm": 13,
-      "fastener": "M4 槽螺母固定底座 + 门板吸片",
-      "data_status": "catalog_generic_geometry",
-      "purchase_note": "吸力和安装孔距随实际商品复核"
-    },
-    {
-      "id": "RAF-B-PC-FLUTED-5",
-      "kind": "panel_material",
-      "name": "5 mm 半透明长虹 PC 板",
-      "material": "polycarbonate",
-      "thickness_mm": 5,
-      "finish": "fluted_translucent",
-      "data_status": "catalog_material_spec",
-      "purchase_note": "按门板净尺寸开料，条纹方向保持竖向"
-    },
-    {
-      "id": "RAF-B-ACRYLIC-CLEAR-5",
-      "kind": "panel_material",
-      "name": "5 mm 透明亚克力板",
-      "material": "acrylic",
-      "thickness_mm": 5,
-      "finish": "clear",
-      "data_status": "catalog_material_spec",
-      "purchase_note": "钻孔和边缘加工需避免应力开裂"
-    },
-    {
-      "id": "RAF-B-PLYWOOD-9",
-      "kind": "panel_material",
-      "name": "9 mm 木质多层板",
-      "material": "plywood",
-      "thickness_mm": 9,
-      "finish": "unfinished",
-      "data_status": "catalog_material_spec",
-      "purchase_note": "封边和表面处理按使用环境确认"
+      "id": "RAF-P-SHELF-BRACKET-40",
+      "kind": "panel_mount",
+      "name": "40 系层板底部小角码",
+      "series": 40,
+      "slot_width_mm": 8,
+      "profile_fastener": "M6×12 + 槽8 M6后装螺母",
+      "board_fastener": "4×12 木螺钉",
+      "board_thickness_min_mm": 15
     }
   ],
   "kits": [

@@ -27,7 +27,7 @@
 - 20 系槽 6 / M5 完整节点、层板、面板和底脚套装
 - 30 系槽 8 / M6 完整节点、层板、面板和底脚套装
 - 40 系槽 8 / M6 完整节点、层板、面板和底脚套装
-- 25 个可直接引用的标准配件,包含常用门合页、把手、磁吸以及 PC、亚克力和木质门板材料
+- 56 个可直接引用的标准配件,覆盖外露/内置/端面/平片连接、调节脚、地脚固定、脚轮与转接板、门锁/碰珠/限位/支撑/导轨/密封，以及 PC、亚克力和木质门板材料
 - 12 个可按数量展开的完整套装
 
 40 系槽 10 与 40 系槽 8 永不自动混配。15 系、40 系槽 10、45 系槽 10、50 系槽 10 在完整套装补齐前只用于几何选型。
@@ -38,6 +38,7 @@
 - `geometry_only`:只有外形和槽系,不能参与承重计算。
 - `supplier_geometry_and_mass`:有供应商原始型号、壁厚和米重,可用于采购筛选、整架重量和长度估算;没有惯性参数时不能参与承重计算。
 - `complete kit`:角码、螺栓、槽螺母及可选装饰盖已经形成完整组合。
+- `functional_spec_supplier_confirm`:目录已给出用途、配套界面和清单位置,但额定载荷、力值或安装孔距必须绑定具体商品后确认。
 
 轻型参考截面值只代表目录中的参考截面等级。用户拿到商家的截面图或检测参数后,应以实际商品覆盖参考值。
 
@@ -66,6 +67,7 @@
 
 ```bash
 python3 scripts/validate_product_catalog.py
+python3 scripts/expand_common_products.py
 python3 scripts/query_product_catalog.py 3030 --kind profile --slot 8
 python3 scripts/query_product_catalog.py 4040 --kind profile --supplier 建恩
 python3 scripts/query_product_catalog.py --kind kit --series 30

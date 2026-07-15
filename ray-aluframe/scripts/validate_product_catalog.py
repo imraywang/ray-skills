@@ -34,6 +34,12 @@ def main() -> int:
                 errors.append(f"{kit['id']}: 引用了不存在的产品 {component.get('product_id')}")
             if int(component.get("qty") or 0) <= 0:
                 errors.append(f"{kit['id']}: 组件数量无效")
+    for product in catalog.get("products", []):
+        for component in product.get("fastener_components", []):
+            if component.get("product_id") not in product_ids:
+                errors.append(f"{product['id']}: 紧固件引用无效 {component.get('product_id')}")
+            if int(component.get("qty") or 0) <= 0:
+                errors.append(f"{product['id']}: 紧固件数量无效")
     for system in catalog.get("systems", []):
         for key in ("standard_joint_kit_id", "shelf_kit_id", "panel_kit_id", "foot_kit_id"):
             if system.get(key) not in kit_ids:

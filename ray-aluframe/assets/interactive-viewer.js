@@ -135,9 +135,11 @@
 
   function applyEditableOverrides(targetDesign) {
     const editable = targetDesign.editable;
-    if (!editable?.enabled || editable.layout !== 'split_cabinet_v1') {
+    if (!editable?.enabled) {
       return { enabled: false, changed: false, values: {} };
     }
+    if (editable.layout === 'bay_frame_v1') return applyBayFrameOverrides(targetDesign, editable);
+    if (editable.layout !== 'split_cabinet_v1') return { enabled: false, changed: false, values: {} };
     const defaults = Object.fromEntries((editable.fields || []).map((field) => [field.id, Number(field.value)]));
     let overrides = {};
     try {
@@ -230,6 +232,94 @@
     return { enabled: true, changed: true, values, defaults, cabinetTop: newCabinetTop };
   }
 
+  function editableValues(editable) {
+    const defaults = Object.fromEntries((editable.fields || []).map((field) => [field.id, Number(field.value)]));
+    let overrides = {};
+    try {
+      const raw = new URLSearchParams(window.location.search).get('ray-edit')
+        || new URLSearchParams(window.location.hash.slice(1)).get('ray-edit');
+      if (raw) overrides = JSON.parse(raw);
+    } catch (error) {
+      console.warn('Ignored invalid preview edit values', error);
+    }
+    const values = { ...defaults };
+    (editable.fields || []).forEach((field) => {
+      const candidate = Number(overrides[field.id]);
+      if (!Number.isFinite(candidate)) return;
+      values[field.id] = clamp(candidate, Number(field.min), Number(field.max));
+      if (Number(field.step) === 1) values[field.id] = Math.round(values[field.id]);
+    });
+    return { defaults, values, changed: Object.keys(overrides).length > 0 };
+  }
+
+  function applyBayFrameOverrides(targetDesign, editable) {
+    const parsed = editableValues(editable);
+    const values = parsed.values;
+    if (!parsed.changed) return { enabled: true, ...parsed };
+    const width = values.width_mm;
+    const depth = values.depth_mm;
+    const height = values.height_mm;
+    const bays = Math.max(1, Math.round(values.bay_count || 1));
+    const levels = Math.max(1, Math.round(values.level_count || 1));
+    const baseZ = Number(editable.base_z_mm || 0);
+    const profileId = editable.profile_id;
+    const xPositions = Array.from({ length: bays + 1 }, (_, index) => index * width / bays);
+    const zPositions = Array.from({ length: levels + 1 }, (_, index) => baseZ + index * (height - baseZ) / levels);
+    const generated = [];
+    xPositions.forEach((x, xi) => [0, depth].forEach((y, yi) => generated.push(genericMember(`POST-${xi}-${yi}`, 'post', [x, y, baseZ], [x, y, height], profileId))));
+    zPositions.forEach((z, zi) => {
+      [0, depth].forEach((y, yi) => {
+        for (let bay = 0; bay < bays; bay += 1) generated.push(genericMember(`LEVEL-${zi}-${yi}-${bay}`, 'level beam', [xPositions[bay], y, z], [xPositions[bay + 1], y, z], profileId));
+      });
+      xPositions.forEach((x, xi) => generated.push(genericMember(`SIDE-${zi}-${xi}`, 'side beam', [x, 0, z], [x, depth, z], profileId)));
+    });
+    targetDesign.members = generated;
+    targetDesign.joints = makeEditableJoints(generated);
+    targetDesign.ground_points = xPositions.flatMap((x) => [[x, 0, baseZ], [x, depth, baseZ]]);
+    const panels = [];
+    if (editable.template !== 'open_frame') {
+      for (let index = 1; index < zPositions.length; index += 1) {
+        const z = zPositions[index];
+        panels.push({ type: 'panel', id: `SHELF-${index}`, corners: [[0, 0, z + 10], [width, 0, z + 10], [width, depth, z + 10], [0, depth, z + 10]], fill: '#caa06d', edge: '#7c5635', opacity: 0.94, evidence_basis: 'confirmed', evidence_confidence: 'high', evidence_note: '由页面设置的层数生成。' });
+      }
+    }
+    if (editable.template === 'enclosure') {
+      panels.push({ type: 'panel', id: 'BACK-PANEL', corners: [[0, depth, baseZ], [width, depth, baseZ], [width, depth, height], [0, depth, height]], fill: '#dce8e4', edge: '#7e918c', opacity: 0.55, evidence_basis: 'confirmed', evidence_confidence: 'high', evidence_note: '由机罩模板生成。' });
+    }
+    targetDesign.visuals = panels;
+    targetDesign.doors = [];
+    const loadPerLevel = Number(editable.load_per_level_kg || 0);
+    targetDesign.loads = [];
+    if (loadPerLevel > 0) {
+      for (let zi = 1; zi < zPositions.length; zi += 1) {
+        for (let bay = 0; bay < bays; bay += 1) {
+          [0, 1].forEach((yi) => targetDesign.loads.push({ id: `LOAD-${zi}-${yi}-${bay}`, member_id: `LEVEL-${zi}-${yi}-${bay}`, mass_kg: loadPerLevel / bays / 2, distribution: 'uniform', support: 'simply_supported', inertia_axis: 'y', safety_factor: Number(editable.load_safety_factor || 1.5), dynamic_factor: Number(editable.dynamic_factor || 1), deflection_limit_ratio: Number(editable.deflection_limit_ratio || 200) }));
+        }
+      }
+    }
+    const anchors = editable.anchors || {};
+    const oldWidth = Number(anchors.width_mm || parsed.defaults.width_mm || width);
+    const oldDepth = Number(anchors.depth_mm || parsed.defaults.depth_mm || depth);
+    const oldHeight = Number(anchors.height_mm || parsed.defaults.height_mm || height);
+    if (targetDesign.stability?.center_of_mass_mm) {
+      const oldCom = targetDesign.stability.center_of_mass_mm;
+      targetDesign.stability.center_of_mass_mm = [Number(oldCom[0]) / oldWidth * width, Number(oldCom[1]) / oldDepth * depth, Number(oldCom[2]) / oldHeight * height];
+      targetDesign.stability.force_height_mm = Number(targetDesign.stability.force_height_mm || oldHeight * 0.75) / oldHeight * height;
+    }
+    (targetDesign.accessories || []).forEach((accessory) => {
+      if (accessory.category === 'foot' || accessory.category === 'caster') accessory.qty = 2 * (bays + 1);
+      if (accessory.category === 'shelf') accessory.qty = editable.template === 'rack' ? levels : 1;
+    });
+    const bayNames = ['零', '单', '双', '三', '四', '五', '六', '七', '八'];
+    const dimensionedName = String(targetDesign.project?.name || '参数化架体').replace(/\d+\s*[×x]\s*\d+\s*[×x]\s*\d+/, `${Math.round(width)}×${Math.round(depth)}×${Math.round(height)}`);
+    targetDesign.project = { ...targetDesign.project, name: dimensionedName.replace(/[一二三四五六七八九十单双\d]+格/, `${bayNames[bays] || bays}格`), revision: `${targetDesign.project?.revision || 'A'} · 页面修改` };
+    return { enabled: true, ...parsed };
+  }
+
+  function genericMember(id, role, start, end, profileId) {
+    return { id, profile_id: profileId, role, start, end, machining_status: 'not_required', machining: [], evidence_basis: 'confirmed', evidence_confidence: 'high', evidence_note: '由通用参数编辑器生成。' };
+  }
+
   function editableLayerMember(id, role, start, end, editable) {
     return {
       id,
@@ -282,6 +372,8 @@
       hinge_catalog_id: system.hinge_catalog_id,
       handle_catalog_id: system.handle_catalog_id,
       catch_catalog_id: system.catch_catalog_id,
+      restraint_catalog_id: system.restraint_catalog_id,
+      opening_clearance_mm: system.opening_clearance_mm,
       evidence_basis: 'confirmed',
       evidence_confidence: 'high',
     };
@@ -299,6 +391,8 @@
         hinge_qty: Number(system.left_hinge_qty || 2),
         handle_position: 'top_center',
         catch_position: 'top_center',
+        restraint_catalog_id: system.left_restraint_catalog_id || system.restraint_catalog_id,
+        opening_clearance_mm: system.left_opening_clearance_mm || system.opening_clearance_mm,
         evidence_note: '参考图显示为横向分块门；开启方向按把手在上、合页在下的下翻门表达。',
       });
     }
@@ -312,6 +406,8 @@
       hinge_qty: Number(system.right_hinge_qty || 3),
       handle_position: 'left_center',
       catch_position: 'left_center',
+      restraint_catalog_id: null,
+      opening_clearance_mm: system.right_opening_clearance_mm || system.opening_clearance_mm,
       evidence_note: '参考图右边缘可见合页，按右侧铰接的通高侧开门表达。',
     });
     targetDesign.doors = doors;
@@ -324,6 +420,7 @@
       door_hinge: doors.reduce((sum, door) => sum + Number(door.hinge_qty || 0), 0),
       door_handle: doors.length,
       door_catch: doors.length,
+      door_restraint: doors.filter((door) => door.restraint_catalog_id).length,
     };
     (targetDesign.accessories || []).forEach((accessory) => {
       if (counts[accessory.category] !== undefined) accessory.qty = counts[accessory.category];
@@ -919,6 +1016,27 @@
       catchSpec.fastener || '底座固定件 + 门板吸片',
     ));
     hardwareRoot.add(catchBody, catchPlate, catchHitbox);
+
+    if (door.opening === 'drop_down' && door.restraint_catalog_id) {
+      const restraintSpec = catalogProducts[door.restraint_catalog_id] || {};
+      const restraintParts = [];
+      [geometry.x0 + 28, geometry.x1 - 28].forEach((x, index) => {
+        const start = new THREE.Vector3(x, geometry.z1 - 42, -geometry.y + 8);
+        const end = new THREE.Vector3(x, geometry.z0 + 48, -geometry.y + 34);
+        const direction = end.clone().sub(start);
+        const chain = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, direction.length(), 8), materials.bolt);
+        chain.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+        chain.position.copy(start).add(end).multiplyScalar(0.5);
+        const hitbox = new THREE.Mesh(new THREE.BoxGeometry(28, Math.max(48, direction.length()), 42), materials.pick);
+        hitbox.position.copy(chain.position);
+        restraintParts.push(chain, hitbox);
+        hardwareRoot.add(chain, hitbox);
+      });
+      registerHardware(restraintParts, {
+        ...doorHardwareInfo(door, 'RESTRAINT', door.restraint_catalog_id, restraintSpec.name || '下翻门限位件', '左右限位件', '一套含左右两处，长度按开启角度确认', restraintSpec.purchase_note || '固定端螺栓和槽螺母'),
+        id: `RESTRAINT-${door.id}`,
+      });
+    }
   }
 
   function horizontalConnections(joint) {
@@ -1435,10 +1553,20 @@
     const shelfBrackets = countFor('RAF-P-SHELF-BRACKET-30');
     const panelClips = countFor('RAF-P-PANEL-CLIP-30');
     const m6Total = mainAngles * 2 + shelfBrackets + panelClips;
+    const hardwareFasteners = new Map();
+    groups.forEach(({ item, count }, catalogId) => {
+      const product = catalogProducts[catalogId] || {};
+      (product.fastener_components || []).forEach((component) => {
+        const productId = component.product_id;
+        hardwareFasteners.set(productId, (hardwareFasteners.get(productId) || 0) + count * Number(component.qty || 1));
+      });
+    });
+    const hardwareFastenerRows = [...hardwareFasteners.entries()].map(([productId, count]) => `<div class="list-row"><span class="list-main"><span class="list-name">${catalogProducts[productId]?.name || productId}</span><span class="list-sub">门板和附件五金配套</span></span><span class="list-value">× ${count}</span></div>`).join('');
     const fastenerSummary = `<p class="section-title" style="margin-top:22px">紧固件合计</p><div class="bom-list">
       <div class="list-row"><span class="list-main"><span class="list-name">M6×12 内六角螺栓</span><span class="list-sub">主角码、层板角码和面板夹</span></span><span class="list-value">× ${m6Total}</span></div>
       <div class="list-row"><span class="list-main"><span class="list-name">槽 8 M6 后装螺母</span><span class="list-sub">与 M6×12 一一配套</span></span><span class="list-value">× ${m6Total}</span></div>
       <div class="list-row"><span class="list-main"><span class="list-name">4×12 木螺钉</span><span class="list-sub">每个层板小角码 1 颗</span></span><span class="list-value">× ${shelfBrackets}</span></div>
+      ${hardwareFastenerRows}
     </div>`;
     const selectedCatalogId = state.selectedHardware?.groupCatalogId || state.selectedHardware?.catalogId;
     const selectedUnits = selectedCatalogId ? hardwareUnits.filter((item) => item.catalogId === selectedCatalogId) : [];
@@ -1551,13 +1679,152 @@
 
   function renderQuote() {
     const root = document.getElementById('quote-panel');
-    const quote = payload.quote || {};
+    const quote = runtimeQuote();
     const money = (range) => range ? `¥${Number(range[0]).toFixed(2)}–¥${Number(range[1]).toFixed(2)}` : '缺少价格';
     const rows = (quote.rows || []).map((row) => `<div class="list-row"><span class="list-main"><span class="list-name">${row.item}</span><span class="list-sub">${row.section} · ${row.catalog_id || '按规格制作'} · ${row.qty} ${row.unit} · ${row.price_source}</span></span><span class="list-value">${money(row.amount_range_cny)}</span></div>`).join('');
     const unknown = (quote.unknown_items || []).map((item) => `<div class="issue blocker"><span class="issue-label">缺价</span><p>${item.item}${item.catalog_id ? ` · ${item.catalog_id}` : ''}</p></div>`).join('');
-    const receipt = (payload.receipt_checklist || []).map((item) => `<div class="list-row"><span class="list-main"><span class="list-name">${item.category} · ${item.item}</span><span class="list-sub">应收到：${item.expected}<br>核对：${item.check}</span></span></div>`).join('');
-    const changed = editState.changed ? '<div class="issue warning"><span class="issue-label">尺寸已修改</span><p>模型和下料已更新；这里仍显示生成文件时的预算基线，导出设计后会按新尺寸重新计算原料支数和费用。</p></div>' : '';
+    const receipt = runtimeReceipt(quote).map((item) => `<div class="list-row"><span class="list-main"><span class="list-name">${item.category} · ${item.item}</span><span class="list-sub">应收到：${item.expected}<br>核对：${item.check}</span></span></div>`).join('');
+    const changed = editState.changed ? '<div class="issue warning"><span class="issue-label">已按新尺寸重算</span><p>原料支数、余料、门板、五金与费用均使用页面当前尺寸；承载和稳定性仍需下载后重新运行检查。</p></div>' : '';
     root.innerHTML = `<p class="section-title">整套预算</p><div class="assembly-head"><div><p class="step-name">${money(quote.total_range_cny)}</p><p class="step-copy">含 ${quote.contingency_percent || 0}% 预留；${quote.status === 'complete_budget_range' ? '预算项目齐全' : '仍有缺价项'}</p></div></div>${changed}<div class="bom-list">${rows}</div>${unknown ? `<p class="section-title bom-section">仍需补价</p><div class="issue-list">${unknown}</div>` : ''}<p class="section-title bom-section">收货核对</p><div class="bom-list">${receipt}</div>`;
+  }
+
+  function runtimeReceipt(quote) {
+    const rows = [];
+    Object.entries(quote.cut_plans || {}).forEach(([profileId, plan]) => {
+      const profile = profiles[profileId] || {};
+      const reference = catalogProfiles[profile.catalog_id] || {};
+      const wall = reference.wall_thickness_mm || profile.wall_thickness_mm;
+      rows.push({ category: '型材', item: reference.vendor_name || reference.name || profile.catalog_id, expected: `${plan.bars.length} 根 × ${plan.stock_length_mm} mm；${reference.width_mm || profile.width_mm}×${reference.height_mm || profile.height_mm} mm；槽 ${reference.slot_width_mm || profile.slot_width_mm}；${wall ? `壁厚 ${wall} mm` : '壁厚待商家确认'}`, check: '卡尺核对外形、槽宽与壁厚；逐根核长度、划伤、压伤、弯曲和毛刺。' });
+    });
+    const jointQty = (design.joints || []).reduce((sum, joint) => sum + Number(joint.connector?.qty || 1), 0);
+    if (jointQty) rows.push({ category: '节点套装', item: '直角节点连接件', expected: `${jointQty} 套；角码、螺栓、后装螺母成套`, check: '先拿一套与型材试装，确认定位凸台进槽、孔径和螺纹吻合。' });
+    doorCutRows().panels.forEach((panel) => rows.push({ category: '门板', item: panel.label, expected: `${panel.width}×${panel.height}×${panel.thickness} mm，1 块`, check: '钢尺核对长宽，卡尺核厚度；检查崩边、翘曲与保护膜。' }));
+    const doorHardware = new Map();
+    (design.doors || []).forEach((door) => [[door.hinge_catalog_id, Number(door.hinge_qty || 0)], [door.handle_catalog_id, 1], [door.catch_catalog_id, 1], [door.restraint_catalog_id, door.restraint_catalog_id ? 1 : 0]].forEach(([id, qty]) => { if (id) doorHardware.set(id, (doorHardware.get(id) || 0) + qty); }));
+    doorHardware.forEach((qty, id) => {
+      const product = catalogProducts[id] || {};
+      const fasteners = (product.fastener_components || []).map((component) => `${catalogProducts[component.product_id]?.name || component.product_id}×${qty * Number(component.qty || 1)}`).join('；') || '紧固件待确认';
+      rows.push({ category: '门五金', item: product.name || id, expected: `${qty} 件；${fasteners}`, check: '逐项点数，先在一扇门上试装；确认螺纹、槽宽、板厚与开启方向。' });
+    });
+    rows.push({ category: '整批', item: '数量与配套抽检', expected: '按下载方案分袋并标注', check: '逐类点数；螺栓与螺母抽装；型材切口去毛刺；门板先干装一扇。' });
+    return rows;
+  }
+
+  function packCuts(cuts, stockLength, kerf = 3, trim = 5) {
+    const capacity = stockLength - trim * 2;
+    const bars = [];
+    [...cuts].sort((a, b) => b.length - a.length).forEach((cut) => {
+      let target = bars.find((bar) => bar.used + (bar.cuts.length ? kerf : 0) + cut.length <= capacity + 0.001);
+      if (!target) { target = { cuts: [], used: 0 }; bars.push(target); }
+      if (target.cuts.length) target.used += kerf;
+      target.cuts.push(cut);
+      target.used += cut.length;
+    });
+    return bars.map((bar, index) => ({ index: index + 1, cuts: bar.cuts, used_mm: Math.round(bar.used), remaining_usable_mm: Math.max(0, Math.round(capacity - bar.used)) }));
+  }
+
+  function runtimeCutPlans() {
+    const settings = design.settings || {};
+    const groups = new Map();
+    members.forEach((member) => {
+      if (!groups.has(member.profile_id)) groups.set(member.profile_id, []);
+      groups.get(member.profile_id).push({ id: member.id, length: memberLength(member) });
+    });
+    return Object.fromEntries([...groups.entries()].map(([profileId, cuts]) => {
+      const profile = profiles[profileId] || {};
+      const reference = catalogProfiles[profile.catalog_id] || {};
+      const stock = Number(profile.stock_length_mm || reference.stock_length_options_mm?.[0] || 6000);
+      return [profileId, { stock_length_mm: stock, bars: packCuts(cuts, stock, Number(settings.kerf_mm || 0), Number(settings.end_trim_mm_each || 0)) }];
+    }));
+  }
+
+  function priceRange(table, key) {
+    const value = table?.[key];
+    return Array.isArray(value) && value.length === 2 ? value.map(Number) : null;
+  }
+
+  function runtimeQuote() {
+    const costing = design.costing || {};
+    const rows = [];
+    const add = (section, item, catalogId, qty, unit, range, source = '方案预算区间') => rows.push({ section, item, catalog_id: catalogId || '', qty: Math.round(qty * 1000) / 1000, unit, unit_price_range_cny: range, amount_range_cny: range ? [qty * range[0], qty * range[1]].map((value) => Math.round(value * 100) / 100) : null, price_source: source });
+    const plans = runtimeCutPlans();
+    Object.entries(plans).forEach(([profileId, plan]) => {
+      const profile = profiles[profileId] || {};
+      const reference = catalogProfiles[profile.catalog_id] || {};
+      let range = priceRange(costing.profile_unit_cost_ranges_cny_per_m, profile.catalog_id);
+      let source = '方案预算区间';
+      if (!range && reference.price_cny_per_m != null) { range = [Number(reference.price_cny_per_m), Number(reference.price_cny_per_m)]; source = `目录快照 ${reference.price_captured_on || ''}`; }
+      add('型材', reference.vendor_name || reference.name || profile.catalog_id, profile.catalog_id, plan.bars.length * plan.stock_length_mm / 1000, '米', range, source);
+    });
+    const systemIds = new Set(Object.values(profiles).map((profile) => profile.system_id || catalogProfiles[profile.catalog_id]?.system_id).filter(Boolean));
+    const selectedSystem = systemIds.size === 1 ? payload.catalog.systems.find((system) => systemIds.has(system.id)) : null;
+    const jointKitId = selectedSystem?.standard_joint_kit_id;
+    const jointKit = payload.catalog.kits.find((kit) => kit.id === jointKitId);
+    const jointQty = (design.joints || []).reduce((sum, joint) => sum + Number(joint.connector?.qty || 1), 0);
+    (jointKit?.components || []).filter((component) => !component.optional).forEach((component) => {
+      const product = catalogProducts[component.product_id] || {};
+      const qty = jointQty * Number(component.qty || 1);
+      add('连接紧固件', product.name || component.product_id, component.product_id, qty, '件', priceRange(costing.catalog_unit_cost_ranges_cny_each, component.product_id));
+    });
+    const doorRows = doorCutRows();
+    const frameCuts = new Map();
+    doorRows.frame.forEach((row) => {
+      if (!frameCuts.has(row.catalogId)) frameCuts.set(row.catalogId, []);
+      for (let index = 0; index < row.qty; index += 1) frameCuts.get(row.catalogId).push({ id: row.note, length: row.length });
+    });
+    frameCuts.forEach((cuts, catalogId) => {
+      const reference = catalogProfiles[catalogId] || {};
+      const stock = Number(reference.stock_length_options_mm?.[0] || 6000);
+      const bars = packCuts(cuts, stock, Number(design.settings?.kerf_mm || 3), Number(design.settings?.end_trim_mm_each || 5));
+      add('门系统', '门框型材原料', catalogId, bars.length * stock / 1000, '米', priceRange(costing.profile_unit_cost_ranges_cny_per_m, catalogId));
+    });
+    doorRows.panels.forEach((panel) => add('门系统', panel.label, panel.catalogId, panel.width * panel.height / 1e6, '平方米', priceRange(costing.panel_unit_cost_ranges_cny_m2, panel.catalogId)));
+    const doorHardware = new Map();
+    (design.doors || []).forEach((door) => [[door.hinge_catalog_id, Number(door.hinge_qty || 0)], [door.handle_catalog_id, 1], [door.catch_catalog_id, 1], [door.restraint_catalog_id, door.restraint_catalog_id ? 1 : 0]].forEach(([id, qty]) => { if (id) doorHardware.set(id, (doorHardware.get(id) || 0) + qty); }));
+    doorHardware.forEach((qty, id) => {
+      const product = catalogProducts[id] || {};
+      add('门系统', product.name || id, id, qty, '件', priceRange(costing.catalog_unit_cost_ranges_cny_each, id));
+      (product.fastener_components || []).forEach((component) => {
+        const fastener = catalogProducts[component.product_id] || {};
+        const fastenerQty = qty * Number(component.qty || 1);
+        add('门系统紧固件', fastener.name || component.product_id, component.product_id, fastenerQty, '件', priceRange(costing.catalog_unit_cost_ranges_cny_each, component.product_id));
+      });
+    });
+    const skippedDoor = new Set(['door_panel', 'door_hinge', 'door_handle', 'door_catch', 'door_restraint']);
+    (design.accessories || []).filter((item) => !skippedDoor.has(item.category)).forEach((item) => {
+      const id = item.catalog_id || item.catalog_kit_id || '';
+      add('板材与附件', item.description || item.category, id, Number(item.qty || 0), '件', id ? priceRange(costing.catalog_unit_cost_ranges_cny_each, id) : priceRange(costing.category_unit_cost_ranges_cny_each, item.category));
+    });
+    const bodyCuts = members.length;
+    const doorCuts = doorRows.frame.reduce((sum, row) => sum + Number(row.qty || 0), 0);
+    add('加工', '主体型材切割', '', bodyCuts, '刀', priceRange(costing.processing_unit_cost_ranges_cny, 'profile_cut'));
+    if (doorCuts) add('加工', '门框型材切割', '', doorCuts, '刀', priceRange(costing.processing_unit_cost_ranges_cny, 'door_frame_cut'));
+    const shipping = priceRange(costing, 'shipping_cost_range_cny');
+    if (shipping) add('物流', '包装与运输', '', 1, '批', shipping);
+    const known = rows.filter((row) => row.amount_range_cny);
+    const unknown = rows.filter((row) => !row.amount_range_cny);
+    const subtotal = [0, 1].map((index) => known.reduce((sum, row) => sum + row.amount_range_cny[index], 0));
+    const contingency = Number(costing.contingency_percent || 0);
+    const total = subtotal.map((value) => Math.round(value * (1 + contingency / 100) * 100) / 100);
+    return { currency: 'CNY', status: unknown.length ? 'incomplete' : 'complete_budget_range', rows, total_range_cny: total, contingency_percent: contingency, unknown_items: unknown.map((row) => ({ section: row.section, item: row.item, catalog_id: row.catalog_id })), cut_plans: plans };
+  }
+
+  function exportCurrentPackage() {
+    const quote = runtimeQuote();
+    const packageData = { format: 'ray-aluframe-package-v1', exported_at: new Date().toISOString(), design, bom: currentBomRows(), door_cuts: doorCutRows(), cut_plans: quote.cut_plans, quote, receipt_checklist: runtimeReceipt(quote), assembly_plan: payload.assembly_plan || {}, reference_review: window.rayReferenceReviewState || null, note: '页面修改后的承载与稳定性需要重新运行检查。' };
+    const blob = new Blob([JSON.stringify(packageData, null, 2)], { type: 'application/json;charset=utf-8' });
+    const link = document.createElement('a');
+    const downloadUrl = URL.createObjectURL(blob);
+    link.href = downloadUrl;
+    link.download = `ray-aluframe-${String(design.project?.name || 'design').replace(/[^a-zA-Z0-9\u4e00-\u9fff-]+/g, '-')}.json`;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+    const status = document.getElementById('export-status');
+    if (status) {
+      status.textContent = `已生成当前方案：${packageData.bom.length} 组主体下料，${Object.values(packageData.cut_plans).reduce((sum, plan) => sum + plan.bars.length, 0)} 根原料。`;
+      status.hidden = false;
+      setTimeout(() => { status.hidden = true; }, 5000);
+    }
   }
 
   function renderIssues() {
@@ -1580,16 +1847,19 @@
     editor.querySelector('.editor-fields').innerHTML = fields.map((field) => `<label class="editor-field"><span>${field.label}</span><span class="editor-input"><input type="number" data-edit-field="${field.id}" value="${Math.round(values[field.id] * 10) / 10}" min="${field.min}" max="${field.max}" step="${field.step}"><small>${field.unit || ''}</small></span></label>`).join('');
     const status = editor.querySelector('.editor-status');
     const validateValues = (next) => {
-      const rightBay = next.width_mm - next.divider_mm;
-      const cabinetTop = Number(design.editable.anchors.base_z_mm || 0) + next.level_count * next.level_height_mm;
-      if (rightBay < Number(design.editable.minimum_right_bay_mm || 250)) return `右侧净宽至少保留 ${design.editable.minimum_right_bay_mm || 250} mm`;
-      if (cabinetTop > next.height_mm - Number(design.editable.minimum_upper_zone_mm || 250)) return '层数与层高组合过高，上部区域不足';
+      if (design.editable.layout === 'split_cabinet_v1') {
+        const rightBay = next.width_mm - next.divider_mm;
+        const cabinetTop = Number(design.editable.anchors.base_z_mm || 0) + next.level_count * next.level_height_mm;
+        if (rightBay < Number(design.editable.minimum_right_bay_mm || 250)) return `右侧净宽至少保留 ${design.editable.minimum_right_bay_mm || 250} mm`;
+        if (cabinetTop > next.height_mm - Number(design.editable.minimum_upper_zone_mm || 250)) return '层数与层高组合过高，上部区域不足';
+      }
+      if (next.bay_count && next.width_mm / next.bay_count < Number(design.editable.minimum_bay_width_mm || 250)) return `每格宽度至少保留 ${design.editable.minimum_bay_width_mm || 250} mm`;
       return '';
     };
     const applyValues = (changedField) => {
       const next = {};
       editor.querySelectorAll('[data-edit-field]').forEach((input) => { next[input.dataset.editField] = Number(input.value); });
-      if (changedField === 'level_count') {
+      if (changedField === 'level_count' && design.editable.layout === 'split_cabinet_v1') {
         const base = Number(design.editable.anchors.base_z_mm || 0);
         const currentTop = editState.cabinetTop || Number(design.editable.anchors.cabinet_top_z_mm);
         next.level_height_mm = Math.max(120, Math.round((currentTop - base) / Math.max(1, next.level_count) / 5) * 5);
@@ -1675,6 +1945,7 @@
       state.distance = Math.max(2500, span * 1.12);
       updateCamera();
     };
+    document.getElementById('export-design').onclick = exportCurrentPackage;
     document.getElementById('show-panels').onchange = (event) => { state.showPanels = event.target.checked; applyAppearance(); };
     document.getElementById('show-hardware').onchange = (event) => { state.showHardware = event.target.checked; applyAppearance(); };
     document.getElementById('show-dimensions').onchange = (event) => {

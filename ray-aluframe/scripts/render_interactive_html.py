@@ -50,10 +50,7 @@ def _compact_issues(issues: list[dict[str, str]]) -> list[dict[str, str]]:
     return sorted(compacted, key=lambda issue: (order[issue["severity"]], issue["text"]))
 
 
-def _embed_reference_image(working: dict[str, Any], design_dir: Path) -> None:
-    reference = working.get("reference_image")
-    if not isinstance(reference, dict):
-        return
+def _embed_one_reference(reference: dict[str, Any], design_dir: Path) -> None:
     if reference.get("data_uri"):
         reference.pop("path", None)
         return
@@ -71,6 +68,15 @@ def _embed_reference_image(working: dict[str, Any], design_dir: Path) -> None:
     reference["data_uri"] = f"data:{mime};base64,{base64.b64encode(image_path.read_bytes()).decode('ascii')}"
     reference["source_name"] = image_path.name
     reference.pop("path", None)
+
+
+def _embed_reference_image(working: dict[str, Any], design_dir: Path) -> None:
+    references = []
+    if isinstance(working.get("reference_image"), dict):
+        references.append(working["reference_image"])
+    references.extend(item for item in working.get("reference_images", []) if isinstance(item, dict))
+    for reference in references:
+        _embed_one_reference(reference, design_dir)
 
 
 def _payload(data: dict[str, Any], design_dir: Path) -> dict[str, Any]:
@@ -163,10 +169,10 @@ h1 {{ margin: 0; font-size: clamp(1.35rem,2.2vw,2.25rem); line-height: 1.1; lett
 .meta {{ display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; color: var(--muted); font-size: .875rem; }}
 .status {{ display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); font-weight: 700; background: var(--paper); }}
 .status::before {{ content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }}
-.toolbar {{ display: flex; align-items: center; gap: 8px 16px; padding: 10px clamp(18px,3vw,42px); border-bottom: 1px solid var(--line); background: var(--surface); overflow-x: auto; scrollbar-width: thin; }}
+.toolbar {{ display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 10px clamp(18px,3vw,42px); border-bottom: 1px solid var(--line); background: var(--surface); overflow-x: visible; scrollbar-width: thin; }}
 .tool-group {{ display: flex; align-items: center; gap: 6px; white-space: nowrap; }}
 .tool-label {{ color: var(--muted); font-size: .75rem; font-weight: 800; letter-spacing: .08em; margin-right: 2px; }}
-.tool-button, .step-button {{ min-height: 42px; border: 1px solid transparent; background: transparent; padding: 8px 12px; cursor: pointer; transition: background 130ms var(--ease), color 130ms var(--ease), transform 130ms var(--ease); }}
+.tool-button, .step-button {{ min-height: 42px; border: 1px solid transparent; background: transparent; padding: 8px 12px; cursor: pointer; white-space: nowrap; transition: background 130ms var(--ease), color 130ms var(--ease), transform 130ms var(--ease); }}
 .tool-button:hover, .step-button:hover {{ background: var(--paper); }}
 .tool-button:active, .step-button:active {{ transform: translateY(1px); }}
 .tool-button[aria-pressed="true"] {{ background: var(--ink); color: var(--surface); }}
@@ -177,6 +183,10 @@ h1 {{ margin: 0; font-size: clamp(1.35rem,2.2vw,2.25rem); line-height: 1.1; lett
 .reference-tools .tool-button, .reference-slider {{ flex: 0 0 auto; white-space: nowrap; }}
 .reference-slider {{ display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: .72rem; font-weight: 750; }}
 .reference-slider input {{ width: 112px; accent-color: var(--orange); }}
+.reference-select {{ max-width: 130px; min-height: 34px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 4px 8px; }}
+.reference-calibration {{ color: var(--muted); font-size: .72rem; white-space: nowrap; }}
+.reference-known {{ display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: .72rem; font-weight: 750; white-space: nowrap; }}
+.reference-known input {{ width: 86px; min-height: 34px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 4px 7px; font-variant-numeric: tabular-nums; }}
 .workspace {{ min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(320px,390px); }}
 .viewer {{ position: relative; min-height: 560px; overflow: hidden; background: #202428; }}
 .viewer::before {{ content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2; background: radial-gradient(circle at 54% 40%,transparent 38%,rgba(0,0,0,.22) 100%); }}
@@ -184,13 +194,18 @@ canvas {{ position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; t
 canvas.dragging {{ cursor: grabbing; }}
 .reference-layer {{ position: absolute; z-index: 1; inset: 0; pointer-events: none; overflow: hidden; }}
 .reference-layer img {{ width: 100%; height: 100%; object-fit: contain; transform-origin: 50% 50%; display: block; }}
-.reference-regions {{ position: absolute; z-index: 4; left: 24px; right: 24px; bottom: 76px; display: flex; align-items: stretch; pointer-events: none; }}
-.reference-region {{ min-width: 0; padding: 9px 11px; border: 1px solid oklch(91% .025 84 / .9); background: oklch(20% .035 248 / .82); color: var(--surface); }}
+.reference-calibration-layer {{ position: absolute; z-index: 7; inset: 0; cursor: crosshair; background: transparent; touch-action: none; }}
+.reference-calibration-point {{ position: absolute; width: 18px; height: 18px; transform: translate(-50%,-50%); border: 3px solid white; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 2px rgba(0,0,0,.55); pointer-events: none; }}
+.reference-calibration-point::after {{ content: ""; position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; transform: translate(-50%,-50%); border-radius: 50%; background: #202428; }}
+.reference-regions {{ position: absolute; z-index: 4; left: 24px; right: 24px; bottom: 76px; display: flex; align-items: stretch; pointer-events: auto; }}
+.reference-region {{ min-width: 0; padding: 9px 11px; border: 1px solid oklch(91% .025 84 / .9); background: oklch(20% .035 248 / .82); color: var(--surface); cursor: pointer; }}
+.reference-region[data-confirmed="true"] {{ background: oklch(42% .09 155 / .9); }}
 .reference-region + .reference-region {{ border-left: 0; }}
 .reference-region strong {{ display: block; font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 .reference-region span {{ display: block; color: oklch(87% .07 84); font-size: .68rem; margin-top: 2px; }}
 .reference-note {{ position: absolute; z-index: 4; top: 16px; right: 18px; max-width: min(360px,calc(100% - 36px)); padding: 8px 10px; background: oklch(20% .035 248 / .84); color: var(--surface); font-size: .72rem; pointer-events: none; }}
 .view-help {{ position: absolute; z-index: 4; left: 18px; bottom: 16px; margin: 0; color: var(--muted); font-size: .8rem; background: var(--surface); border: 1px solid var(--line); padding: 8px 11px; }}
+.export-status {{ position: absolute; z-index: 9; right: 18px; bottom: 18px; max-width: 360px; padding: 10px 14px; background: oklch(42% .09 155 / .96); color: white; box-shadow: var(--shadow); font-size: .8rem; font-weight: 700; }}
 .dimensions {{ position: absolute; z-index: 4; top: 16px; left: 18px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 36px); pointer-events: none; }}
 .dimension {{ padding: 6px 9px; background: var(--surface); border: 1px solid var(--line); font-size: .78rem; font-variant-numeric: tabular-nums; box-shadow: 0 5px 18px oklch(29% .03 248 / .08); }}
 .dimension-editor {{ position: absolute; z-index: 8; top: 16px; right: 18px; width: min(360px,calc(100% - 36px)); max-height: calc(100% - 32px); overflow: auto; background: color-mix(in oklch,var(--surface) 97%,transparent); border: 1px solid var(--line); box-shadow: 0 18px 60px rgba(0,0,0,.28); }}
@@ -263,6 +278,7 @@ canvas.dragging {{ cursor: grabbing; }}
   .masthead {{ align-items: flex-start; flex-direction: column; gap: 10px; }}
   .workspace {{ grid-template-columns: 1fr; grid-template-rows: minmax(480px,62vh) auto; }}
   .inspector {{ border-left: 0; border-top: 1px solid var(--line); min-height: 560px; }}
+  .toolbar {{ flex-wrap: nowrap; overflow-x: auto; }}
 }}
 @media (max-width: 560px) {{
   .toolbar {{ padding-inline: 12px; }}
@@ -306,19 +322,37 @@ canvas.dragging {{ cursor: grabbing; }}
     </div>
     <div class="reference-tools" id="reference-tools" role="group" aria-label="参考图校对" hidden>
       <button class="tool-button" id="reference-review-toggle" aria-pressed="false">参考图校对</button>
+      <select class="reference-select" id="reference-view-select" aria-label="选择参考图" hidden></select>
       <label class="reference-slider" id="reference-opacity-control" hidden>原图
         <input id="reference-opacity" type="range" min="0" max="100" value="48" aria-label="参考图透明度">
       </label>
+      <label class="reference-slider" id="reference-scale-control" hidden>缩放
+        <input id="reference-scale" type="range" min="25" max="400" value="100" aria-label="参考图缩放">
+      </label>
+      <label class="reference-slider" id="reference-x-control" hidden>水平
+        <input id="reference-x" type="range" min="-100" max="100" value="0" aria-label="参考图水平移动">
+      </label>
+      <label class="reference-slider" id="reference-y-control" hidden>垂直
+        <input id="reference-y" type="range" min="-100" max="100" value="0" aria-label="参考图垂直移动">
+      </label>
+      <button class="tool-button" id="reference-calibrate" hidden>两点定尺度</button>
+      <label class="reference-known" id="reference-known-control" hidden>实际
+        <input id="reference-known-length" type="number" min="0.1" step="1" value="1000" aria-label="两点之间的实际长度，毫米">mm
+      </label>
+      <button class="tool-button" id="reference-save-scale" hidden>保存尺度</button>
+      <span class="reference-calibration" id="reference-calibration" hidden></span>
     </div>
     <button class="tool-button" id="edit-layout" aria-pressed="false">修改尺寸</button>
+    <button class="tool-button" id="export-design">下载方案</button>
     <button class="tool-button" id="reset-view">复位视角</button>
   </nav>
   <section class="workspace">
     <section class="viewer" id="model" aria-label="可旋转的铝型材结构模型">
       <canvas id="canvas" tabindex="0" aria-label="拖动旋转，滚轮缩放，点击型材或五金查看参数"></canvas>
       <div class="reference-layer" id="reference-layer" hidden><img id="reference-image" alt=""></div>
+      <div class="reference-calibration-layer" id="reference-calibration-layer" aria-label="参考图定尺度区域" hidden></div>
       <div class="reference-regions" id="reference-regions" hidden></div>
-      <div class="reference-note" id="reference-note" hidden>当前从柜门侧看向洞洞板；透明叠加只用于核对左右、分区和连续横梁，不用于从像素读取尺寸。</div>
+      <div class="reference-note" id="reference-note" hidden>请选择对应视角，调节缩放与位置后核对分区；“两点定尺度”可记录图中已知长度。</div>
       <div class="dimensions" id="dimensions"></div>
       <section class="dimension-editor" id="dimension-editor" aria-label="修改结构尺寸" hidden>
         <div class="editor-head"><div><strong>直接修改方案</strong><span>离开输入框或按回车后自动更新</span></div></div>
@@ -329,6 +363,7 @@ canvas.dragging {{ cursor: grabbing; }}
           <button class="editor-reset" id="reset-layout" type="button">恢复原方案</button>
         </div>
       </section>
+      <div class="export-status" id="export-status" role="status" aria-live="polite" hidden></div>
       <p class="view-help">拖动旋转 · 滚轮缩放 · 点击型材或五金查看参数 · 方向键微调</p>
     </section>
     <aside class="inspector" aria-label="结构信息">

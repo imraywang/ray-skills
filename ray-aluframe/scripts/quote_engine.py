@@ -139,10 +139,16 @@ def build_quote_bundle(data: dict[str, Any], catalog: dict[str, Any], cut_plans:
         panel_id = str(door.get("panel_catalog_id") or "")
         panel_area = max(0, width - 2 * frame) * max(0, height - 2 * frame) / 1_000_000
         _add(rows, "门系统", f"{door.get('label', door.get('id'))}门板", panel_area, "平方米", _range(area_prices, panel_id), "方案预算区间", panel_id)
-        for key, qty in (("hinge_catalog_id", int(door.get("hinge_qty") or 0)), ("handle_catalog_id", 1), ("catch_catalog_id", 1)):
+        for key, qty in (("hinge_catalog_id", int(door.get("hinge_qty") or 0)), ("handle_catalog_id", 1), ("catch_catalog_id", 1), ("restraint_catalog_id", 1)):
             if door.get(key): door_catalog_counts[str(door[key])] += qty
     for catalog_id, qty in door_catalog_counts.items():
-        _add(rows, "门系统", (products.get(catalog_id) or {}).get("name") or catalog_id, qty, "件", _range(item_prices, catalog_id), "方案预算区间", catalog_id)
+        product = products.get(catalog_id) or {}
+        _add(rows, "门系统", product.get("name") or catalog_id, qty, "件", _range(item_prices, catalog_id), "方案预算区间", catalog_id)
+        for component in product.get("fastener_components", []):
+            product_id = str(component["product_id"])
+            fastener = products.get(product_id) or {}
+            fastener_qty = qty * int(component.get("qty") or 1)
+            _add(rows, "门系统紧固件", fastener.get("name") or product_id, fastener_qty, "件", _range(item_prices, product_id), "方案预算区间", product_id)
 
     door_categories = {"door_panel", "door_hinge", "door_handle", "door_catch"}
     for item in data.get("accessories", []):
@@ -185,7 +191,9 @@ def build_receipt_checklist(data: dict[str, Any], catalog: dict[str, Any], cut_p
     for design_profile in data.get("profiles", []):
         reference = profiles.get(design_profile.get("catalog_id")) or {}
         bars = (cut_plans or {}).get(design_profile.get("id"), [])
-        rows.append({"category": "型材", "item": reference.get("vendor_name") or reference.get("name") or design_profile.get("catalog_id"), "catalog_id": design_profile.get("catalog_id"), "expected": f"{len(bars)} 根原料；{reference.get('width_mm')}×{reference.get('height_mm')} mm；槽 {reference.get('slot_width_mm')}；壁厚 {reference.get('wall_thickness_mm')} mm", "check": "卡尺核对外形、槽宽与壁厚；逐根核长度、划伤、压伤、弯曲和毛刺。"})
+        wall = reference.get("wall_thickness_mm")
+        wall_note = f"壁厚 {wall} mm" if wall is not None else "壁厚待商家确认"
+        rows.append({"category": "型材", "item": reference.get("vendor_name") or reference.get("name") or design_profile.get("catalog_id"), "catalog_id": design_profile.get("catalog_id"), "expected": f"{len(bars)} 根原料；{reference.get('width_mm')}×{reference.get('height_mm')} mm；槽 {reference.get('slot_width_mm')}；{wall_note}", "check": "卡尺核对外形、槽宽与壁厚；逐根核长度、划伤、压伤、弯曲和毛刺。"})
     kit_counts: Counter[str] = Counter()
     kits = {item["id"]: item for item in catalog.get("kits", [])}
     for joint in data.get("joints", []):
@@ -198,6 +206,16 @@ def build_receipt_checklist(data: dict[str, Any], catalog: dict[str, Any], cut_p
         height = float(door["bounds"][3]) - float(door["bounds"][2]) - 2 * float(door.get("gap_mm") or 0)
         frame = float(door.get("frame_profile_mm") or 20)
         rows.append({"category": "门板", "item": door.get("label") or door.get("id"), "catalog_id": door.get("panel_catalog_id"), "expected": f"{round(width-2*frame)}×{round(height-2*frame)}×{door.get('panel_thickness_mm', 5)} mm，1 块", "check": "钢尺核对长宽，卡尺核厚度；检查崩边、翘曲与保护膜。"})
+        for key, qty in (("hinge_catalog_id", int(door.get("hinge_qty") or 0)), ("handle_catalog_id", 1), ("catch_catalog_id", 1), ("restraint_catalog_id", 1)):
+            product_id = str(door.get(key) or "")
+            if not product_id:
+                continue
+            product = products.get(product_id) or {}
+            fasteners = "；".join(
+                f"{(products.get(str(component['product_id'])) or {}).get('name') or component['product_id']}×{qty * int(component.get('qty') or 1)}"
+                for component in product.get("fastener_components", [])
+            ) or "紧固件未展开"
+            rows.append({"category": "门五金", "item": product.get("name") or product_id, "catalog_id": product_id, "expected": f"{qty} 件；{fasteners}", "check": "逐项点数，先在一扇门上试装；确认螺纹、槽宽、板厚与开启方向。"})
     rows.append({"category": "整批", "item": "数量与配套抽检", "catalog_id": "", "expected": "按清单分袋并标注", "check": "逐类点数；螺栓与螺母抽装；型材切口去毛刺；门板与框架先干装一扇。"})
     return rows
 

@@ -222,11 +222,143 @@ def beam_result(load: dict[str, Any], member: dict[str, Any], profile: dict[str,
     }
 
 
+def connection_result(joint: dict[str, Any]) -> dict[str, Any] | None:
+    connector = joint.get("connector") or {}
+    demand = connector.get("demand_n")
+    capacity = connector.get("capacity_n")
+    if demand is None and capacity is None:
+        return None
+    result = {
+        "joint_id": joint.get("id"),
+        "demand_n": float(demand) if demand is not None else None,
+        "capacity_n": float(capacity) if capacity is not None else None,
+        "utilization": None,
+        "status": "INCOMPLETE",
+    }
+    if demand is not None and capacity is not None and float(capacity) > 0:
+        result["utilization"] = float(demand) / float(capacity)
+        result["status"] = "PASS" if result["utilization"] <= 1 + EPS else "FAIL"
+    return result
+
+
+def stability_results(
+    data: dict[str, Any],
+    ground_points: list[list[float]],
+    products: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    stability = data.get("stability") or {}
+    result: dict[str, Any] = {"lateral": [], "tip_over": [], "casters": []}
+    required = {str(value).lower() for value in stability.get("required_bracing_planes", [])}
+    provided = {str(value).lower() for value in stability.get("bracing_planes", [])}
+    for plane in sorted(required):
+        aliases = {plane, f"rear_{plane}", f"front_{plane}", f"left_{plane}", f"right_{plane}"}
+        passed = bool(provided & aliases)
+        result["lateral"].append({"plane": plane, "status": "PASS" if passed else "FAIL"})
+
+    mass = stability.get("gross_mass_kg")
+    com = stability.get("center_of_mass_mm")
+    horizontal_force = stability.get("horizontal_force_n")
+    force_height = stability.get("force_height_mm")
+    tip_factor = float(stability.get("tip_safety_factor") or 1.5)
+    valid_ground = [point for point in ground_points if isinstance(point, list) and len(point) == 3]
+    if mass is not None and isinstance(com, list) and len(com) == 3 and horizontal_force is not None and force_height is not None and valid_ground:
+        x_min, x_max = min(point[0] for point in valid_ground), max(point[0] for point in valid_ground)
+        y_min, y_max = min(point[1] for point in valid_ground), max(point[1] for point in valid_ground)
+        for axis, low, high, center in (("x", x_min, x_max, float(com[0])), ("y", y_min, y_max, float(com[1]))):
+            lever = min(center - low, high - center)
+            restoring = float(mass) * G * max(0.0, lever)
+            overturning = float(horizontal_force) * float(force_height)
+            ratio = restoring / overturning if overturning > EPS else math.inf
+            result["tip_over"].append(
+                {
+                    "axis": axis,
+                    "restoring_moment_n_mm": restoring,
+                    "overturning_moment_n_mm": overturning,
+                    "safety_ratio": ratio,
+                    "required_ratio": tip_factor,
+                    "status": "PASS" if ratio + EPS >= tip_factor else "FAIL",
+                }
+            )
+
+    caster_items = [item for item in data.get("accessories", []) if item.get("category") == "caster"]
+    for item in caster_items:
+        product = products.get(str(item.get("catalog_id") or "")) or {}
+        rating = item.get("rated_load_kg_each", product.get("rated_load_kg_each"))
+        qty = int(item.get("qty") or 0)
+        share = float(item.get("effective_load_share") or stability.get("caster_effective_load_share") or 0.75)
+        row = {"item": item.get("description") or product.get("name") or item.get("catalog_id"), "qty": qty, "rated_load_kg_each": rating, "required_load_kg_each": None, "status": "INCOMPLETE"}
+        if mass is not None and rating is not None and qty > 0 and share > 0:
+            row["required_load_kg_each"] = float(mass) / (qty * share)
+            row["status"] = "PASS" if row["required_load_kg_each"] <= float(rating) + EPS else "FAIL"
+        result["casters"].append(row)
+    return result
+
+
+def door_results(data: dict[str, Any], products: dict[str, dict[str, Any]], catalog_ids: set[str]) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for door in data.get("doors", []):
+        label = str(door.get("label") or door.get("id") or "未命名门")
+        bounds = door.get("bounds")
+        issues: list[str] = []
+        if not (isinstance(bounds, list) and len(bounds) == 4 and all(isinstance(value, (int, float)) for value in bounds)):
+            issues.append("门框范围无效")
+            width = height = 0.0
+        else:
+            width = float(bounds[1]) - float(bounds[0]) - 2 * float(door.get("gap_mm") or 0)
+            height = float(bounds[3]) - float(bounds[2]) - 2 * float(door.get("gap_mm") or 0)
+            if width <= 0 or height <= 0:
+                issues.append("门板净尺寸小于等于 0")
+        for key, name in (("panel_catalog_id", "门板"), ("hinge_catalog_id", "合页"), ("handle_catalog_id", "把手"), ("catch_catalog_id", "闭合件")):
+            if door.get(key) not in catalog_ids:
+                issues.append(f"{name}目录编号无效")
+        hinge_qty = int(door.get("hinge_qty") or 0)
+        minimum_hinges = 3 if height > 700 else 2
+        if hinge_qty < minimum_hinges:
+            issues.append(f"合页少于 {minimum_hinges} 只")
+        if door.get("opening") == "drop_down":
+            restraint = door.get("restraint_catalog_id")
+            if restraint not in catalog_ids:
+                issues.append("下翻门缺少有效限位链或支撑件")
+        clearance = door.get("opening_clearance_mm")
+        if clearance is None:
+            issues.append("未确认开启净空")
+        elif float(clearance) < max(width, height) * (0.9 if door.get("opening") == "drop_down" else 0.6):
+            issues.append("开启净空可能不足")
+        hardware_ids = [door.get(key) for key in ("hinge_catalog_id", "handle_catalog_id", "catch_catalog_id", "restraint_catalog_id") if door.get(key)]
+        for hardware_id in hardware_ids:
+            product = products.get(str(hardware_id)) or {}
+            if not product.get("fastener_components"):
+                issues.append(f"{product.get('name') or hardware_id}未展开紧固件")
+        result.append({"door_id": door.get("id"), "label": label, "width_mm": width, "height_mm": height, "issues": issues, "status": "PASS" if not issues else "FAIL"})
+    doors = data.get("doors", [])
+    for index, first in enumerate(doors):
+        first_bounds = first.get("bounds")
+        if not (isinstance(first_bounds, list) and len(first_bounds) == 4):
+            continue
+        for second in doors[index + 1 :]:
+            second_bounds = second.get("bounds")
+            if not (isinstance(second_bounds, list) and len(second_bounds) == 4):
+                continue
+            overlap_x = min(float(first_bounds[1]), float(second_bounds[1])) - max(float(first_bounds[0]), float(second_bounds[0]))
+            overlap_z = min(float(first_bounds[3]), float(second_bounds[3])) - max(float(first_bounds[2]), float(second_bounds[2]))
+            same_plane = abs(float(first.get("front_y_mm") or 0) - float(second.get("front_y_mm") or 0)) <= EPS
+            if same_plane and overlap_x > EPS and overlap_z > EPS:
+                first_result = next(item for item in result if item["door_id"] == first.get("id"))
+                second_result = next(item for item in result if item["door_id"] == second.get("id"))
+                message = f"与 {second.get('label') or second.get('id')} 的门框范围重叠"
+                first_result["issues"].append(message)
+                second_result["issues"].append(f"与 {first.get('label') or first.get('id')} 的门框范围重叠")
+                first_result["status"] = second_result["status"] = "FAIL"
+    return result
+
+
 def validate(data: dict[str, Any]) -> dict[str, Any]:
     errors: list[str] = []
     warnings: list[str] = []
     blockers: list[str] = []
 
+    if isinstance(data.get("design"), dict) and str(data.get("format") or "").startswith("ray-aluframe"):
+        data = data["design"]
     catalog = load_catalog()
     data = resolve_design(data, catalog)
     catalog_profiles_by_id = {item["id"]: item for item in catalog.get("profiles", [])}
@@ -234,6 +366,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
     catalog_ids = {
         item["id"] for group in ("profiles", "products", "kits") for item in catalog.get(group, [])
     }
+    products_by_id = {item["id"]: item for item in catalog.get("products", [])}
     profile_entries = hydrate_profiles(data.get("profiles", []), catalog)
     profiles = {p.get("id"): p for p in profile_entries if p.get("id")}
     members = {m.get("id"): m for m in data.get("members", []) if m.get("id")}
@@ -307,6 +440,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
     endpoint_coverage: set[tuple[str, tuple[float, ...]]] = set()
     graph: dict[str, set[str]] = defaultdict(set)
     connector_counts: Counter[tuple[str, str, str]] = Counter()
+    connection_results: list[dict[str, Any]] = []
 
     for joint in joints:
         jid = joint.get("id")
@@ -350,6 +484,13 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
         if catalog_id not in catalog_ids:
             blockers.append(f"{jid}: 连接件缺少有效的本目录编号")
         connector_counts[(str(catalog_id or ""), str(connector.get("description", "")), "")] += int(connector.get("qty", 1))
+        capacity_check = connection_result(joint)
+        if capacity_check:
+            connection_results.append(capacity_check)
+            if capacity_check["status"] == "FAIL":
+                blockers.append(f"{jid}: 连接件承载初查失败")
+            elif capacity_check["status"] == "INCOMPLETE":
+                blockers.append(f"{jid}: 连接件需求或额定能力缺失")
 
     ground = {tuple(p) for p in ground_points if isinstance(p, list) and len(p) == 3}
     for member in members.values():
@@ -400,7 +541,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
                     continue
                 x_min, x_max = map(float, x_range)
                 z_min, z_max = map(float, z_range)
-                internal_levels: set[float] = set()
+                intervals_by_level: defaultdict[float, list[tuple[float, float]]] = defaultdict(list)
                 for item in members.values():
                     start, end = item.get("start"), item.get("end")
                     if not (isinstance(start, list) and isinstance(end, list)):
@@ -417,8 +558,17 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
                         continue
                     member_x_min = min(float(start[0]), float(end[0]))
                     member_x_max = max(float(start[0]), float(end[0]))
-                    if member_x_min <= x_min + EPS and member_x_max >= x_max - EPS:
-                        internal_levels.add(round(level, 6))
+                    if member_x_max > x_min + EPS and member_x_min < x_max - EPS:
+                        intervals_by_level[round(level, 6)].append((max(x_min, member_x_min), min(x_max, member_x_max)))
+                internal_levels: set[float] = set()
+                for level, intervals in intervals_by_level.items():
+                    merged_end = x_min
+                    for start_x, end_x in sorted(intervals):
+                        if start_x > merged_end + EPS:
+                            break
+                        merged_end = max(merged_end, end_x)
+                    if merged_end >= x_max - EPS:
+                        internal_levels.add(level)
                 actual_rows = len(internal_levels) + 1
                 passed = actual_rows == expected_rows
                 topology_results.append(
@@ -436,9 +586,27 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
                     blockers.append(f"参考图拓扑不符: {label}应为 {expected_rows} 格，模型为 {actual_rows} 格")
 
     evidence_summary: Counter[str] = Counter()
-    if data.get("reference_image"):
+    references = ([data.get("reference_image")] if data.get("reference_image") else []) + list(data.get("reference_images") or [])
+    if references:
         if not reference_topology:
             blockers.append("已提供参考图但没有 reference_topology，无法核对可见分区")
+        labels = set()
+        for index, reference in enumerate(references, 1):
+            if not isinstance(reference, dict):
+                blockers.append(f"第 {index} 张参考图格式无效")
+                continue
+            view = str(reference.get("view") or "")
+            if view not in {"front", "rear", "left", "right", "top", "detail"}:
+                blockers.append(f"第 {index} 张参考图缺少有效视角")
+            if view in labels and view != "detail":
+                warnings.append(f"参考图视角 {view} 重复，建议标明各自用途")
+            labels.add(view)
+            calibration = reference.get("calibration") or {}
+            if calibration:
+                known = float(calibration.get("known_length_mm") or 0)
+                pixels = float(calibration.get("pixel_length") or 0)
+                if known <= 0 or pixels <= 0:
+                    blockers.append(f"第 {index} 张参考图尺度校准无效")
         allowed_basis = {"visible", "inferred", "confirmed"}
         allowed_confidence = {"high", "medium", "low"}
         evidence_items = [("构件", item) for item in members.values()]
@@ -522,6 +690,26 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
             blockers.append(f"附件 {item.get('description', '?')}: 本目录编号无效")
         accessory_counts[(str(item.get("category", "")), str(catalog_id or ""), "", str(item.get("description", "")))] += int(item.get("qty", 1))
 
+    stability_check = stability_results(data, ground_points, products_by_id)
+    for row in stability_check["lateral"]:
+        if row["status"] == "FAIL":
+            blockers.append(f"缺少 {row['plane']} 平面的抗侧摆措施")
+    if not stability_check["tip_over"]:
+        blockers.append("缺少总重、重心、水平力或作用高度，无法做防倾倒初查")
+    for row in stability_check["tip_over"]:
+        if row["status"] == "FAIL":
+            blockers.append(f"{row['axis'].upper()} 方向防倾倒安全余量不足")
+    for row in stability_check["casters"]:
+        if row["status"] == "INCOMPLETE":
+            blockers.append(f"脚轮 {row['item']}: 缺总重、数量或额定载荷")
+        elif row["status"] == "FAIL":
+            blockers.append(f"脚轮 {row['item']}: 单轮额定载荷不足")
+
+    doors_check = door_results(data, products_by_id, catalog_ids)
+    for row in doors_check:
+        for issue in row["issues"]:
+            blockers.append(f"门板 {row['label']}: {issue}")
+
     cut_plans: dict[str, list[dict[str, Any]]] = {}
     for pid, lengths in lengths_by_profile.items():
         profile = profiles[pid]
@@ -561,6 +749,9 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
         "accessory_counts": accessory_counts,
         "cut_plans": cut_plans,
         "beam_results": beam_results,
+        "connection_results": connection_results,
+        "stability_results": stability_check,
+        "door_results": doors_check,
         "machining_rows": machining_rows,
         "topology_results": topology_results,
         "evidence_summary": evidence_summary,
@@ -624,6 +815,30 @@ def markdown(data: dict[str, Any], result: dict[str, Any]) -> str:
         state = "载荷已提供但参数不足" if data.get("loads") else "未提供载荷"
         lines.append(f"| — | — | — | — | {state} | 未检查 |")
     lines.append("")
+
+    lines += ["## 连接与整架稳定", "", "| 项目 | 对象 | 结果 | 说明 |", "|---|---|---|---|"]
+    if result["connection_results"]:
+        for item in result["connection_results"]:
+            detail = "参数不完整" if item["utilization"] is None else f"利用率 {item['utilization']:.2f}"
+            lines.append(f"| 连接承载 | {item['joint_id']} | {item['status']} | {detail} |")
+    for item in result["stability_results"]["lateral"]:
+        lines.append(f"| 抗侧摆 | {item['plane'].upper()} 平面 | {item['status']} | {'已提供' if item['status'] == 'PASS' else '缺少明确措施'} |")
+    for item in result["stability_results"]["tip_over"]:
+        lines.append(f"| 防倾倒 | {item['axis'].upper()} 方向 | {item['status']} | 安全比 {item['safety_ratio']:.2f}，要求 {item['required_ratio']:.2f} |")
+    for item in result["stability_results"]["casters"]:
+        required = "未算出" if item["required_load_kg_each"] is None else f"需 {item['required_load_kg_each']:.1f} kg/只"
+        rated = "额定值缺失" if item["rated_load_kg_each"] is None else f"额定 {float(item['rated_load_kg_each']):.1f} kg/只"
+        lines.append(f"| 脚轮 | {item['item']} | {item['status']} | {required}；{rated} |")
+    if not any((result["connection_results"], result["stability_results"]["lateral"], result["stability_results"]["tip_over"], result["stability_results"]["casters"])):
+        lines.append("| — | — | 未检查 | 缺少输入 |")
+    lines.append("")
+
+    if result["door_results"]:
+        lines += ["## 门板系统", "", "| 门板 | 净尺寸 mm | 结果 | 待处理 |", "|---|---:|---|---|"]
+        for item in result["door_results"]:
+            issues = "；".join(item["issues"]) if item["issues"] else "无"
+            lines.append(f"| {item['label']} | {item['width_mm']:.0f}×{item['height_mm']:.0f} | {item['status']} | {issues} |")
+        lines.append("")
 
     lines += ["## 型材汇总与下料", ""]
     for pid, bars in result["cut_plans"].items():

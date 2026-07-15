@@ -26,10 +26,14 @@
   "joints": [],
   "ground_points": [],
   "loads": [],
+  "stability": {},
   "accessories": [],
   "reference_image": {},
+  "reference_images": [],
   "reference_topology": {},
-  "visuals": []
+  "visuals": [],
+  "doors": [],
+  "editable": {}
 }
 ```
 
@@ -85,12 +89,15 @@
   "connector": {
     "catalog_kit_id": "RAF-KIT-JOINT-30-8-M6",
     "description": "30 系槽 8 标准直角节点套装",
-    "qty": 1
+    "qty": 1,
+    "demand_n": 1200,
+    "capacity_n": 2500
   }
 }
 ```
 
 节点坐标必须落在所引用构件上。本目录编号无效或缺失会阻止“可询价”判定。
+只有具体连接件商品或供应商给出额定能力时才填写 `capacity_n`;有节点需求却缺额定能力时保持未检查,不能按角码外形猜承载。
 
 ## 5. 载荷
 
@@ -114,6 +121,23 @@
 - `support`: `simply_supported` / `fixed_fixed` / `cantilever`
 - `inertia_axis`: `x` / `y`
 
+整架稳定输入独立放在 `stability`:
+
+```json
+{
+  "gross_mass_kg": 220,
+  "center_of_mass_mm": [600, 300, 700],
+  "horizontal_force_n": 120,
+  "force_height_mm": 1100,
+  "tip_safety_factor": 1.5,
+  "required_bracing_planes": ["xz", "yz"],
+  "bracing_planes": ["xz", "yz"],
+  "caster_effective_load_share": 0.75
+}
+```
+
+防倾倒按支撑点包络、总重、重心和水平力初查。带脚轮结构还必须在脚轮附件记录 `rated_load_kg_each`;没有具体商品额定值时必须阻断,不得按轮径猜测。
+
 ## 6. 附件与加工
 
 ```json
@@ -136,6 +160,7 @@
   "reference_image": {
     "path": "/absolute/path/reference.jpg",
     "label": "咖啡柜参考图",
+    "view": "front",
     "default_opacity": 48,
     "object_fit": "contain",
     "mirror_x": false,
@@ -167,7 +192,7 @@
 }
 ```
 
-`reference_image.path` 可用绝对路径,也可相对设计 JSON 所在目录。生成交互预览时图片会嵌入 HTML,成品文件不再依赖原路径。`default_opacity` 控制校对模式初始透明度;`mirror_x` 只在原图确实被镜像时使用。`transform` 用于轻微平移和缩放,不得用它伪装透视已经精确校准。
+`reference_image.path` 可用绝对路径,也可相对设计 JSON 所在目录。多角度照片放进 `reference_images`,每张都标 `view`: `front/rear/left/right/top/detail`。生成交互预览时图片会嵌入 HTML,成品文件不再依赖原路径。页面可以逐图切换、平移、缩放、确认正面区域,并通过“两点定尺度”记录 `known_length_mm`、`pixel_length` 和 `mm_per_pixel`;校准结果随下载方案保存。`default_opacity` 控制校对模式初始透明度;`mirror_x` 只在原图确实被镜像时使用。`transform` 用于轻微平移和缩放,不得用它伪装透视已经精确校准。
 
 `x_range_mm` 和 `z_range_mm` 是该正面区域的边界。`expected_rows` 由参考图中明确可见的水平分格得到。脚本只统计位于正面、横跨整个区域、且处于上下边界之间的横向构件。无法看清时使用 `confidence=medium/low`,并在交付前请用户确认,不得把推测写成高置信度事实。
 
@@ -193,7 +218,7 @@
 
 ## 9. 可编辑尺寸与门板系统
 
-需要用户在交互预览中直接改尺寸时,增加 `editable`。只有显式声明了可编辑规则的方案才显示修改入口,不要对任意结构做无依据的整体拉伸。首个支持布局是左右分区柜体:
+需要用户在交互预览中直接改尺寸时,增加 `editable`。只有显式声明了可编辑规则的方案才显示修改入口,不要对任意结构做无依据的整体拉伸。左右分区柜体使用 `split_cabinet_v1`:
 
 ```json
 {
@@ -226,6 +251,14 @@
 
 可变层横梁必须写 `editable_group`,页面重算时删除旧层位并按层数和层高重新生成。页面同时重算节点、主体下料、门框下料、门板开料和门五金数量;承载、稳定性和正式采购就绪状态仍需把修改后的数据重新交给检查脚本,不得在浏览器里伪装为已经复核。
 
+普通置物架、工作台和机罩使用 `bay_frame_v1`,开放总宽、深度、总高、横向分格和层数。优先直接运行:
+
+```bash
+python3 <skill-dir>/scripts/generate_parametric_frame.py config.json design.json
+```
+
+配置的 `template` 取 `rack`、`workbench` 或 `enclosure`;页面修改后会重建立柱、横梁、节点、层板/围板、载荷分配、支脚数量、原料支数、余料和费用。
+
 门板用独立的 `doors` 表达,不要继续把会开启的门当作普通固定面板:
 
 ```json
@@ -247,13 +280,14 @@
   "handle_position": "left_center",
   "catch_catalog_id": "RAF-D-MAGNET-45",
   "catch_position": "left_center",
+  "opening_clearance_mm": 900,
   "evidence_basis": "confirmed",
   "evidence_confidence": "high",
   "evidence_note": "参考图右边缘可见合页"
 }
 ```
 
-`bounds` 依次为正视图的左、右、下、上边界。门板实际开料尺寸由边界、四周间隙和门框宽度共同计算。`opening` 首版支持 `drop_down` 和 `side_hinged`;必须同时给出合页边、合页数量、把手和闭合件。材料默认从本目录的 PC、亚克力或木板条目选择,不得只写“透明板”。
+`bounds` 依次为正视图的左、右、下、上边界。门板实际开料尺寸由边界、四周间隙和门框宽度共同计算。`opening` 支持 `drop_down` 和 `side_hinged`;必须同时给出合页边、合页数量、把手、闭合件和开启净空。下翻门还必须给 `restraint_catalog_id`,使用本目录限位链或支撑件。合页、把手、碰珠和限位件会继续展开到螺栓与槽螺母;门框重叠、合页不足、开启净空不足或限位件缺失都会阻断询价。材料默认从本目录的 PC、亚克力或木板条目选择,不得只写“透明板”。
 
 ## 10. 费用、收货和装配闭环
 
@@ -267,6 +301,8 @@
 - `shipping_cost_range_cny`、`contingency_percent`、`captured_on`、`notes`
 
 `costing.required` 为真时，任何缺价都会阻止“可询价”。准备脚本会补入 `quote_summary`、`receipt_checklist` 和 `assembly_plan`；这些结果随设计一同保存，不需要访问第三方网站。
+
+交互预览里的“下载方案”会保存当前页面修改后的设计、下料组合、余料、门板开料、完整五金、费用、收货清单和参考图校对记录。下载的 JSON 可以直接交给 `check_frame.py` 重新运行承载与稳定性检查。
 
 标准节点应记录 `catalog_kit_id`、`connection_method`、`machining_required`、`install_access` 和 `assembly_note`。使用本目录外露角码加后装螺母时，杆件写 `machining_status: not_required`；不要继续保留 TBD 加工。
 

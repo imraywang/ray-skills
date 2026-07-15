@@ -1,0 +1,19 @@
+{
+  "name": "1600×600×1900 双格参数化工作台",
+  "template": "workbench",
+  "width_mm": 1600,
+  "depth_mm": 600,
+  "height_mm": 1900,
+  "bay_count": 2,
+  "level_count": 2,
+  "profile_catalog_id": "RAF-P-3030",
+  "joint_kit_id": "RAF-KIT-JOINT-30-8-M6",
+  "load_per_level_kg": 50,
+  "gross_mass_kg": 180,
+  "center_of_mass_mm": [800, 300, 720],
+  "horizontal_force_n": 120,
+  "force_height_mm": 1100,
+  "bracing_planes": ["xz", "yz"],
+  "lateral_stability": "背面刚性板约束 XZ 平面，侧面刚性板约束 YZ 平面",
+  "tip_over": "使用总重、重心、120 N 水平力和 1.1 m 作用高度初查"
+}
