@@ -136,6 +136,7 @@ h1 {{ margin: 0; font-size: clamp(1.35rem,2.2vw,2.25rem); line-height: 1.1; lett
 .tool-button:hover, .step-button:hover {{ background: var(--paper); }}
 .tool-button:active, .step-button:active {{ transform: translateY(1px); }}
 .tool-button[aria-pressed="true"] {{ background: var(--ink); color: var(--surface); }}
+.mode-note {{ color: var(--muted); font-size: .7rem; padding-left: 2px; }}
 .toggle {{ min-height: 42px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 0 4px; }}
 .toggle input {{ width: 18px; height: 18px; accent-color: var(--blue); }}
 .workspace {{ min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(320px,390px); }}
@@ -208,6 +209,11 @@ canvas.dragging {{ cursor: grabbing; }}
     <div class="meta"><span id="revision"></span><span id="envelope"></span><span class="status" id="readiness"></span></div>
   </header>
   <nav class="toolbar" aria-label="预览工具">
+    <div class="tool-group" role="group" aria-label="显示模式"><span class="tool-label">模式</span>
+      <button class="tool-button" data-mode="structure" aria-pressed="false">结构</button>
+      <button class="tool-button" data-mode="realistic" aria-pressed="true">真实</button>
+      <span class="mode-note" id="mode-note">通用件外观</span>
+    </div>
     <div class="tool-group" role="group" aria-label="视角"><span class="tool-label">视角</span>
       <button class="tool-button" data-view="iso" aria-pressed="true">等轴</button>
       <button class="tool-button" data-view="front" aria-pressed="false">正面</button>
@@ -249,10 +255,11 @@ canvas.dragging {{ cursor: grabbing; }}
 const payload = JSON.parse(document.getElementById('payload').textContent);
 const design = payload.design;
 const members = design.members || [];
+const memberMap = Object.fromEntries(members.map(m => [m.id,m]));
 const profiles = Object.fromEntries((design.profiles || []).map(p => [p.id,p]));
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const state = {{ yaw:-Math.PI/4, pitch:Math.PI/7, zoom:1, selected:null, hoverIds:new Set(), dragging:false, last:null, dragDistance:0, showPanels:true, showHardware:true, showDimensions:true, step:0, hit:[] }};
+const state = {{ yaw:-Math.PI/4, pitch:Math.PI/7, zoom:1, selected:null, hoverIds:new Set(), dragging:false, last:null, dragDistance:0, renderMode:'realistic', showPanels:true, showHardware:true, showDimensions:true, step:0, hit:[] }};
 const presets = {{ iso:[-Math.PI/4,Math.PI/7], front:[0,0], side:[-Math.PI/2,0], top:[0,Math.PI/2] }};
 const roleNames = {{post:'立柱','level beam':'层横梁','side beam':'侧横梁'}};
 const allPoints = members.flatMap(m => [m.start,m.end]);
@@ -331,6 +338,88 @@ function drawDimensions(proj) {{
   drawDimensionLine([maxX,minY,minZ],[maxX,maxY,minZ],`深 ${{envelope[1]}} mm`,proj);
   drawDimensionLine([maxX,maxY,minZ],[maxX,maxY,maxZ],`高 ${{envelope[2]}} mm`,proj);
 }}
+function memberWidth(m) {{
+  const profile=profiles[m.profile_id]||{{}}, section=Math.max(profile.width_mm||30,profile.height_mm||30);
+  return Math.max(6,Math.min(16,section/5))*Math.min(1.25,Math.max(.75,state.zoom));
+}}
+function drawStructureMember(m,a,b,width) {{
+  ctx.strokeStyle='#f5f1e9';ctx.lineWidth=width+5;ctx.lineCap='square';ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  ctx.strokeStyle=memberColor(m);ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(a[0]-2,a[1]-2);ctx.lineTo(b[0]-2,b[1]-2);ctx.stroke();
+}}
+function drawRealMember(m,a,b,width) {{
+  const dx=b[0]-a[0],dy=b[1]-a[1],length=Math.hypot(dx,dy)||1,nx=-dy/length,ny=dx/length;
+  const highlighted=state.selected===m.id||state.hoverIds.has(m.id);
+  ctx.lineCap='square';
+  if (highlighted) {{
+    ctx.strokeStyle='#e47726';ctx.lineWidth=width+10;ctx.globalAlpha=.92;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.globalAlpha=1;
+  }}
+  ctx.strokeStyle='#4d575d';ctx.lineWidth=width+5;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  const metal=ctx.createLinearGradient(a[0]+nx*width/2,a[1]+ny*width/2,a[0]-nx*width/2,a[1]-ny*width/2);
+  metal.addColorStop(0,'#727d83');metal.addColorStop(.16,'#c4cbce');metal.addColorStop(.42,'#f4f6f5');metal.addColorStop(.7,'#aab3b7');metal.addColorStop(1,'#667178');
+  ctx.strokeStyle=metal;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  ctx.strokeStyle='#515d63';ctx.lineWidth=Math.max(1.2,width*.12);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.82)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(a[0]+nx*width*.28,a[1]+ny*width*.28);ctx.lineTo(b[0]+nx*width*.28,b[1]+ny*width*.28);ctx.stroke();
+  if (width>10) {{
+    ctx.strokeStyle='rgba(70,82,89,.7)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a[0]-nx*width*.27,a[1]-ny*width*.27);ctx.lineTo(b[0]-nx*width*.27,b[1]-ny*width*.27);ctx.stroke();
+  }}
+}}
+function panelPath(pts) {{ ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath(); }}
+function drawPanel(panel,proj) {{
+  const pts=panel.corners.map(p=>screen(p,proj));
+  panelPath(pts);
+  if (state.renderMode==='structure') {{
+    ctx.fillStyle=panel.pattern==='pegboard'?'#d5d0bf':'#d9c89e';ctx.globalAlpha=state.step===4?1:.72;ctx.fill();
+    ctx.globalAlpha=1;ctx.strokeStyle='#897d63';ctx.lineWidth=1.5;ctx.stroke();return;
+  }}
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const material=ctx.createLinearGradient(minX,minY,maxX,maxY);
+  if (panel.pattern==='pegboard') {{ material.addColorStop(0,'#bbb5a6');material.addColorStop(.55,'#d7d2c5');material.addColorStop(1,'#9f9a8e'); }}
+  else {{ material.addColorStop(0,'#b99768');material.addColorStop(.45,'#dec89f');material.addColorStop(1,'#a88459'); }}
+  ctx.fillStyle=material;ctx.globalAlpha=state.step===4?1:.9;ctx.fill();ctx.globalAlpha=1;
+  ctx.save();panelPath(pts);ctx.clip();
+  if (panel.pattern==='pegboard') {{
+    ctx.fillStyle='rgba(50,52,50,.5)';
+    for(let x=minX+9;x<maxX;x+=16)for(let y=minY+9;y<maxY;y+=16){{ctx.beginPath();ctx.arc(x,y,1.15,0,Math.PI*2);ctx.fill();}}
+  }} else {{
+    ctx.strokeStyle='rgba(105,70,38,.16)';ctx.lineWidth=.8;
+    for(let y=minY+8;y<maxY;y+=13){{ctx.beginPath();ctx.moveTo(minX-8,y);ctx.bezierCurveTo(minX+(maxX-minX)*.3,y-2,maxX-(maxX-minX)*.25,y+2,maxX+8,y);ctx.stroke();}}
+  }}
+  ctx.restore();panelPath(pts);ctx.strokeStyle=panel.pattern==='pegboard'?'#716e65':'#7b5e3e';ctx.lineWidth=2;ctx.stroke();
+}}
+function jointDirections(j,proj) {{
+  const p=screen(j.at,proj),directions=[];
+  (j.member_ids||[]).forEach(id=>{{
+    const m=memberMap[id];if(!m)return;
+    const ds=Math.hypot(...m.start.map((v,i)=>v-j.at[i])),de=Math.hypot(...m.end.map((v,i)=>v-j.at[i]));
+    const other=screen(ds>de?m.start:m.end,proj),dx=other[0]-p[0],dy=other[1]-p[1],length=Math.hypot(dx,dy);
+    if(length<5)return;const d=[dx/length,dy/length];
+    if(!directions.some(x=>Math.abs(x[0]*d[0]+x[1]*d[1])>.985))directions.push(d);
+  }});
+  return [p,directions];
+}}
+function drawStructureJoint(j,proj) {{
+  const p=screen(j.at,proj);ctx.fillStyle=state.step===5?'#e47726':'#6d7a83';ctx.strokeStyle='#f5f1e9';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(p[0],p[1],state.step===5?7:5,0,Math.PI*2);ctx.fill();ctx.stroke();
+}}
+function drawRealJoint(j,proj) {{
+  const [p,directions]=jointDirections(j,proj);ctx.save();ctx.lineCap='round';
+  directions.slice(0,3).forEach(d=>{{
+    const end=[p[0]+d[0]*14,p[1]+d[1]*14];
+    ctx.strokeStyle='#525b60';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(end[0],end[1]);ctx.stroke();
+    ctx.strokeStyle=state.step===5?'#d28a50':'#aeb6b9';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(end[0],end[1]);ctx.stroke();
+    const bolt=[p[0]+d[0]*8,p[1]+d[1]*8];ctx.fillStyle='#3f474b';ctx.beginPath();ctx.arc(bolt[0],bolt[1],2.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#d8ddde';ctx.beginPath();ctx.arc(bolt[0]-.6,bolt[1]-.6,.9,0,Math.PI*2);ctx.fill();
+  }});
+  ctx.fillStyle='#3f474b';ctx.strokeStyle='#d5dadb';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p[0],p[1],4,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+}}
+function drawFoot(foot,proj) {{
+  const top=screen(foot.at,proj),bottom=screen([foot.at[0],foot.at[1],foot.at[2]-(foot.stem_mm||35)],proj);
+  const radius=Math.max(5,Math.min(11,(foot.pad_diameter_mm||45)*proj.scale/2));ctx.save();
+  ctx.strokeStyle='#3f474b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(top[0],top[1]);ctx.lineTo(bottom[0],bottom[1]);ctx.stroke();
+  ctx.fillStyle=state.renderMode==='realistic'?'#747d81':'#6d7a83';ctx.strokeStyle='#30373a';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(bottom[0],bottom[1],radius,Math.max(2.5,radius*.34),0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#c4cacc';ctx.fillRect(top[0]-4,top[1]-2,8,4);ctx.restore();
+}}
 function draw() {{
   const rect=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
   const w=Math.round(rect.width*dpr), h=Math.round(rect.height*dpr);
@@ -340,29 +429,20 @@ function draw() {{
   ctx.save();
   if (state.showPanels && state.step!==1 && state.step!==2 && state.step!==3) {{
     const panels=(design.visuals||[]).filter(v=>v.type==='panel'&&v.corners?.length>=3).sort((a,b)=>polygonDepth(b)-polygonDepth(a));
-    panels.forEach(panel=>{{
-      const pts=panel.corners.map(p=>screen(p,proj));
-      ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath();
-      ctx.fillStyle=panel.pattern==='pegboard'?'#d5d0bf':'#d9c89e'; ctx.globalAlpha=state.step===4?1:.72; ctx.fill();
-      ctx.globalAlpha=1; ctx.strokeStyle='#897d63'; ctx.lineWidth=1.5; ctx.stroke();
-    }});
+    panels.forEach(panel=>drawPanel(panel,proj));
   }}
   const sorted=[...members].sort((a,b)=>((rotated(a.start)[2]+rotated(a.end)[2])-(rotated(b.start)[2]+rotated(b.end)[2])));
   state.hit=[];
   sorted.forEach(m=>{{
-    const a=screen(m.start,proj), b=screen(m.end,proj), profile=profiles[m.profile_id]||{{}};
-    const section=Math.max(profile.width_mm||30,profile.height_mm||30);
-    const width=Math.max(5,Math.min(14,section/5.5))*Math.min(1.25,Math.max(.75,state.zoom));
+    const a=screen(m.start,proj),b=screen(m.end,proj),width=memberWidth(m);
     ctx.globalAlpha=(state.step>0&&state.step<4&&!currentStepKind(m))?.26:1;
-    ctx.strokeStyle='#f5f1e9'; ctx.lineWidth=width+5; ctx.lineCap='square'; ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
-    ctx.strokeStyle=memberColor(m); ctx.lineWidth=width; ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
-    ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(a[0]-2,a[1]-2);ctx.lineTo(b[0]-2,b[1]-2);ctx.stroke();
+    if(state.renderMode==='realistic')drawRealMember(m,a,b,width);else drawStructureMember(m,a,b,width);
     ctx.globalAlpha=1; state.hit.push({{id:m.id,a,b}});
   }});
   if (state.showHardware && state.step!==1 && state.step!==2 && state.step!==3) {{
+    (design.visuals||[]).filter(v=>v.type==='leveling_foot').sort((a,b)=>rotated(a.at)[2]-rotated(b.at)[2]).forEach(foot=>drawFoot(foot,proj));
     (design.joints||[]).sort((a,b)=>rotated(a.at)[2]-rotated(b.at)[2]).forEach(j=>{{
-      const p=screen(j.at,proj); ctx.fillStyle=state.step===5?'#e47726':'#6d7a83'; ctx.strokeStyle='#f5f1e9'; ctx.lineWidth=2;
-      ctx.beginPath();ctx.arc(p[0],p[1],state.step===5?7:5,0,Math.PI*2);ctx.fill();ctx.stroke();
+      if(state.renderMode==='realistic')drawRealJoint(j,proj);else drawStructureJoint(j,proj);
     }});
   }}
   drawDimensions(proj);
@@ -421,6 +501,11 @@ document.querySelectorAll('.tab').forEach((b,index,all)=>{{
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{{
   [state.yaw,state.pitch]=presets[b.dataset.view];state.zoom=1;
   document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x===b));draw();
+}});
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{{
+  state.renderMode=b.dataset.mode;
+  document.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  document.getElementById('mode-note').hidden=state.renderMode!=='realistic';draw();
 }});
 document.getElementById('reset-view').onclick=()=>{{[state.yaw,state.pitch]=presets.iso;state.zoom=1;draw();}};
 document.getElementById('show-panels').onchange=e=>{{state.showPanels=e.target.checked;draw();}};
