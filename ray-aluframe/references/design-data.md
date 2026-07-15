@@ -11,7 +11,8 @@
 7. 参考图拓扑
 8. 外观可视化
 9. 可编辑尺寸与门板系统
-10. 就绪判定
+10. 费用、收货和装配闭环
+11. 就绪判定
 
 ## 1. 顶层结构
 
@@ -254,7 +255,22 @@
 
 `bounds` 依次为正视图的左、右、下、上边界。门板实际开料尺寸由边界、四周间隙和门框宽度共同计算。`opening` 首版支持 `drop_down` 和 `side_hinged`;必须同时给出合页边、合页数量、把手和闭合件。材料默认从本目录的 PC、亚克力或木板条目选择,不得只写“透明板”。
 
-## 10. 就绪判定
+## 10. 费用、收货和装配闭环
+
+询价级方案增加 `costing`。价格必须来自本目录已保存价格或设计中明确标注日期的预算区间，不能把预算冒充实时报价。至少覆盖：
+
+- `profile_unit_cost_ranges_cny_per_m`：按型材目录编号记录每米区间
+- `catalog_unit_cost_ranges_cny_each`：按五金目录编号记录单件区间
+- `panel_unit_cost_ranges_cny_m2`：按板材目录编号记录每平方米区间
+- `category_unit_cost_ranges_cny_each`：台面、脚轮、背板等按类别记录单件区间
+- `processing_unit_cost_ranges_cny`：主体切割、门框切割、钻孔或攻丝
+- `shipping_cost_range_cny`、`contingency_percent`、`captured_on`、`notes`
+
+`costing.required` 为真时，任何缺价都会阻止“可询价”。准备脚本会补入 `quote_summary`、`receipt_checklist` 和 `assembly_plan`；这些结果随设计一同保存，不需要访问第三方网站。
+
+标准节点应记录 `catalog_kit_id`、`connection_method`、`machining_required`、`install_access` 和 `assembly_note`。使用本目录外露角码加后装螺母时，杆件写 `machining_status: not_required`；不要继续保留 TBD 加工。
+
+## 11. 就绪判定
 
 - **草案**:数据或几何有错误,无法完成检查。
 - **待复核**:结构可表达,但仍有本目录编号、连接、加工、强度、载荷或稳定措施未确认。

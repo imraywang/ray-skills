@@ -77,6 +77,7 @@ def _payload(data: dict[str, Any], design_dir: Path) -> dict[str, Any]:
     working = copy.deepcopy(data)
     _embed_reference_image(working, design_dir)
     result = validate(working)
+    working = result.get("resolved_design") or working
     working["profiles"] = list(result["profiles"].values())
 
     profiles = result["profiles"]
@@ -110,6 +111,9 @@ def _payload(data: dict[str, Any], design_dir: Path) -> dict[str, Any]:
         "bom": bom,
         "issues": _compact_issues(issues),
         "readiness": result["readiness"],
+        "quote": result["quote"],
+        "receipt_checklist": result["receipt_checklist"],
+        "assembly_plan": result["assembly_plan"],
     }
 
 
@@ -221,7 +225,7 @@ canvas.dragging {{ cursor: grabbing; }}
 .location-note {{ display: block; margin-top: 5px; color: var(--orange); font-size: .72rem; font-weight: 800; }}
 .hardware-locations {{ margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }}
 .tabs {{ min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr); }}
-.tablist {{ display: grid; grid-template-columns: repeat(5,1fr); border-bottom: 1px solid var(--line); }}
+.tablist {{ display: grid; grid-template-columns: repeat(6,1fr); border-bottom: 1px solid var(--line); }}
 .tab {{ min-height: 48px; border: 0; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-weight: 700; color: var(--muted); }}
 .tab[aria-selected="true"] {{ color: var(--ink); border-bottom-color: var(--orange); }}
 .tab-panel {{ min-height: 0; overflow: auto; padding: 18px 22px 30px; }}
@@ -244,7 +248,7 @@ canvas.dragging {{ cursor: grabbing; }}
 .step-button {{ border-color: var(--line); min-width: 44px; padding-inline: 10px; }}
 .step-name {{ font-size: 1.2rem; font-weight: 800; margin: 0; }}
 .step-copy {{ color: var(--muted); margin: 6px 0 18px; }}
-.progress {{ display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; }}
+.progress {{ display: grid; grid-template-columns: repeat(6,1fr); gap: 4px; }}
 .progress span {{ height: 5px; background: var(--line); }}
 .progress span.done {{ background: var(--orange); }}
 .issue {{ padding: 12px 0 12px 18px; border-bottom: 1px solid var(--line); position: relative; }}
@@ -334,12 +338,14 @@ canvas.dragging {{ cursor: grabbing; }}
           <button class="tab" role="tab" aria-selected="true" aria-controls="members-panel" id="members-tab">构件</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="hardware-panel" id="hardware-tab" tabindex="-1">五金</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="bom-panel" id="bom-tab" tabindex="-1">清单</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="quote-panel" id="quote-tab" tabindex="-1">询价</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="assembly-panel" id="assembly-tab" tabindex="-1">装配</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="issues-panel" id="issues-tab" tabindex="-1">问题</button>
         </div>
         <div class="tab-panel" role="tabpanel" id="members-panel" aria-labelledby="members-tab"></div>
         <div class="tab-panel" role="tabpanel" id="hardware-panel" aria-labelledby="hardware-tab" hidden></div>
         <div class="tab-panel" role="tabpanel" id="bom-panel" aria-labelledby="bom-tab" hidden></div>
+        <div class="tab-panel" role="tabpanel" id="quote-panel" aria-labelledby="quote-tab" hidden></div>
         <div class="tab-panel" role="tabpanel" id="assembly-panel" aria-labelledby="assembly-tab" hidden></div>
         <div class="tab-panel" role="tabpanel" id="issues-panel" aria-labelledby="issues-tab" hidden></div>
       </section>
@@ -588,19 +594,16 @@ function renderBom() {{
   root.innerHTML='<p class="section-title">型材下料汇总</p><div class="bom-list">'+payload.bom.map((r,i)=>`<button class="list-row" data-bom="${{i}}"><span class="list-main"><span class="list-name">${{r.catalog_id}} · ${{r.designation}}</span><span class="list-sub">${{r.length_mm}} mm</span></span><span class="list-value">× ${{r.qty}}</span></button>`).join('')+'</div>';
   root.querySelectorAll('[data-bom]').forEach(b=>{{const ids=payload.bom[+b.dataset.bom].member_ids;b.onmouseenter=()=>{{state.hoverIds=new Set(ids);draw();}};b.onmouseleave=()=>{{state.hoverIds.clear();draw();}};b.onclick=()=>{{state.hoverIds=new Set(ids);state.selected=ids[0];renderSelection();draw();}};}});
 }}
-const steps=[
-  {{name:'完整结构',copy:'查看所有型材、板材和五金。'}},
-  {{name:'第 1 步 · 底部框架',copy:'先拼装底部横梁，测量两条对角线并校方。'}},
-  {{name:'第 2 步 · 立柱',copy:'安装立柱，先临时拧紧，确认垂直。'}},
-  {{name:'第 3 步 · 各层横梁',copy:'从下往上安装横梁，每层再次核对对角线。'}},
-  {{name:'第 4 步 · 层板与背板',copy:'安装层板、背板和展示板，确认边缘固定点。'}},
-  {{name:'第 5 步 · 五金与复紧',copy:'安装底脚与剩余五金，空载复紧后逐步加载。'}}
-];
+const steps=payload.assembly_plan?.steps?.length?payload.assembly_plan.steps:[{{name:'完整结构',copy:'查看所有型材、板材和五金。'}}];
 function renderAssembly() {{
   const s=steps[state.step], root=document.getElementById('assembly-panel');
-  root.innerHTML=`<div class="assembly-head"><div><p class="section-title">装配演示</p><p class="step-name">${{s.name}}</p></div><div class="step-controls"><button class="step-button" id="prev-step" aria-label="上一步">←</button><button class="step-button" id="next-step" aria-label="下一步">→</button></div></div><p class="step-copy">${{s.copy}}</p><div class="progress" aria-label="装配进度">${{Array.from({{length:5}},(_,i)=>`<span class="${{i<state.step?'done':''}}"></span>`).join('')}}</div>`;
+  root.innerHTML=`<div class="assembly-head"><div><p class="section-title">装配演示</p><p class="step-name">${{s.name}}</p></div><div class="step-controls"><button class="step-button" id="prev-step" aria-label="上一步">←</button><button class="step-button" id="next-step" aria-label="下一步">→</button></div></div><p class="step-copy">${{s.copy}}</p>${{s.check?`<div class="issue"><span class="issue-label">这一步要核对</span><p>${{s.check}}</p></div>`:''}}<div class="progress" aria-label="装配进度">${{Array.from({{length:Math.max(1,steps.length-1)}},(_,i)=>`<span class="${{i<state.step?'done':''}}"></span>`).join('')}}</div>`;
   root.querySelector('#prev-step').onclick=()=>{{state.step=Math.max(0,state.step-1);renderAssembly();draw();}};
-  root.querySelector('#next-step').onclick=()=>{{state.step=Math.min(5,state.step+1);renderAssembly();draw();}};
+  root.querySelector('#next-step').onclick=()=>{{state.step=Math.min(steps.length-1,state.step+1);renderAssembly();draw();}};
+}}
+function renderQuote() {{
+  const root=document.getElementById('quote-panel'),q=payload.quote||{{}},money=r=>r?`¥${{Number(r[0]).toFixed(2)}}–¥${{Number(r[1]).toFixed(2)}}`:'缺少价格';
+  root.innerHTML=`<p class="section-title">整套预算</p><p class="step-name">${{money(q.total_range_cny)}}</p><div class="bom-list">${{(q.rows||[]).map(r=>`<div class="list-row"><span class="list-main"><span class="list-name">${{r.item}}</span><span class="list-sub">${{r.section}} · ${{r.qty}} ${{r.unit}}</span></span><span class="list-value">${{money(r.amount_range_cny)}}</span></div>`).join('')}}</div><p class="section-title bom-section">收货核对</p><div class="bom-list">${{(payload.receipt_checklist||[]).map(r=>`<div class="list-row"><span class="list-main"><span class="list-name">${{r.category}} · ${{r.item}}</span><span class="list-sub">${{r.expected}}<br>${{r.check}}</span></span></div>`).join('')}}</div>`;
 }}
 function renderIssues() {{
   const labels={{error:'错误',blocker:'必须确认',warning:'提醒'}}, root=document.getElementById('issues-panel');
@@ -636,7 +639,7 @@ canvas.addEventListener('keydown',e=>{{if(!['ArrowLeft','ArrowRight','ArrowUp','
 new ResizeObserver(draw).observe(canvas.parentElement);
 document.getElementById('dimensions').innerHTML=[`宽 ${{envelope[0]}} mm`,`深 ${{envelope[1]}} mm`,`高 ${{envelope[2]}} mm`].map(x=>`<span class="dimension">${{x}}</span>`).join('');
 document.getElementById('hardware-panel').innerHTML='<p class="section-title">五金汇总</p><div class="issue-list">'+(design.accessories||[]).map(a=>`<div class="issue"><p>${{a.description||a.category}} × ${{a.qty||0}}</p></div>`).join('')+'</div>';
-renderSelection();renderMembers();renderBom();renderAssembly();renderIssues();draw();
+renderSelection();renderMembers();renderBom();renderQuote();renderAssembly();renderIssues();draw();
 </script>
 <script>{three_runtime}</script>
 <script>{viewer_runtime}</script>

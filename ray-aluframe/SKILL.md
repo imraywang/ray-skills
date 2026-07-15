@@ -104,12 +104,13 @@ python3 <skill-dir>/scripts/query_product_catalog.py --kind kit --series 30
 复杂方案或任何询价级/制作级方案,把设计写成 JSON,字段按 [design-data.md](references/design-data.md),然后运行:
 
 ```bash
-python3 <skill-dir>/scripts/check_frame.py design.json --report report.md
+python3 <skill-dir>/scripts/prepare_quote_package.py design.json --output quote-ready-design.json
+python3 <skill-dir>/scripts/check_frame.py quote-ready-design.json --report report.md
 python3 <skill-dir>/scripts/render_frame_svg.py design.json --output preview.svg
 python3 <skill-dir>/scripts/render_assembly_svg.py design.json --output assembly-preview.svg
-python3 <skill-dir>/scripts/render_interactive_html.py design.json --output interactive-preview.html
+python3 <skill-dir>/scripts/render_interactive_html.py quote-ready-design.json --output interactive-preview.html
 python3 <skill-dir>/scripts/generate_construction_pdf.py design.json --output construction-report.pdf
-python3 <skill-dir>/scripts/generate_pairing_list.py design.json --output pairing-list.md
+python3 <skill-dir>/scripts/generate_pairing_list.py quote-ready-design.json --output pairing-list.md
 ```
 
 构件密集导致标签遮挡时,加 `--labels none` 生成给用户确认的干净预览;完整构件编号仍以检查报告和设计清单为准。
@@ -123,6 +124,9 @@ python3 <skill-dir>/scripts/generate_pairing_list.py design.json --output pairin
 - 汇总型材、连接件、附件和加工项
 - 把型材、角码、螺栓、槽螺母、底脚/脚轮和板材固定件合并为一张直观搭配清单
 - 判定当前是“草案”“待复核”还是“可询价”
+- 把已知欧标槽系节点展开到明确角码、螺栓和后装螺母,并写明是否需要加工
+- 形成包含型材、五金、板材、加工、预留和运输的整套预算区间
+- 输出到货逐项核对办法和不会因漏放螺母而卡住的装配顺序
 
 优先把 `interactive-preview.html` 交给用户确认方案。它可以在“结构 / 真实”间切换、拖动旋转、滚轮缩放、切换正面/侧面/顶面、隐藏层板或五金、点击构件或五金看规格、从下料汇总反查构件,并逐步查看装配顺序。真实模式必须生成带槽口和中心孔的三维型材实体,同时表现板材、节点角件、螺栓和底脚,不能用二维线条加金属渐变冒充三维效果。角码必须按产品库的宽度、两条臂长、厚度和孔径生成,安装面落在横梁与立柱的夹角内,螺栓分别落在横面和竖面;不能把角码中心与型材中心重合,也不能用两块悬空矩形片代替。层板小角码、面板夹、槽螺母和调节脚也必须按附件清单的净数量渲染,并能点选查看本目录编号、适配范围和紧固件。汇总五金还必须有真正可操作的“查看安装位置”按钮,展开逐个节点并在模型中高亮定位,不能把说明文字写得像按钮。产品库未记录的外形尺寸只做通用表达,不得编造精确值或暗示与某个商家商品完全一致。文件包含当前方案、三维预览能力和本地目录参数,可单独打开,不依赖外部网站。生成后必须用真实浏览器检查模式与视角切换、型材和五金选择、清单联动、装配步骤和窄屏显示。
 

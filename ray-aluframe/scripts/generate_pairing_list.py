@@ -11,6 +11,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from check_frame import validate
+from quote_engine import resolve_design
+
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = SKILL_DIR / "references" / "product-catalog.json"
@@ -119,6 +122,8 @@ def _accessory_display(
 
 
 def generate(design: dict[str, Any], catalog: dict[str, Any]) -> str:
+    design = resolve_design(design, catalog)
+    validation = validate(design)
     systems = catalog.get("systems", [])
     catalog_profiles = {entry["designation"]: entry for entry in catalog.get("profiles", [])}
     catalog_profiles_by_id = {entry["id"]: entry for entry in catalog.get("profiles", [])}
@@ -235,6 +240,30 @@ def generate(design: dict[str, Any], catalog: dict[str, Any]) -> str:
         "这张表解决配套和数量；承重、侧摆、防倾倒及板材强度仍以检查报告为准。",
         "",
     ]
+    quote = validation["quote"]
+    lines += [
+        "## 整套费用估算",
+        "",
+        f"预算区间（含 {quote['contingency_percent']:.0f}% 预留）：**¥{quote['total_range_cny'][0]:.2f}–¥{quote['total_range_cny'][1]:.2f}**。",
+        "",
+        "| 类别 | 物料 | 数量 | 小计区间 | 价格依据 |",
+        "|---|---|---:|---:|---|",
+    ]
+    for row in quote["rows"]:
+        amount = row["amount_range_cny"]
+        display = f"¥{amount[0]:.2f}–¥{amount[1]:.2f}" if amount else "缺价"
+        lines.append(f"| {row['section']} | {row['item']} | {row['qty']:g} {row['unit']} | {display} | {row['price_source']} |")
+    if quote["unknown_items"]:
+        lines += ["", "仍需商家补价：" + "；".join(item["item"] for item in quote["unknown_items"]), ""]
+
+    lines += ["", "## 收货核对清单", "", "| 类别 | 物料 | 应收到 | 到货怎么检查 |", "|---|---|---|---|"]
+    for row in validation["receipt_checklist"]:
+        lines.append(f"| {row['category']} | {row['item']} | {row['expected']} | {row['check']} |")
+
+    lines += ["", "## 不会装到一半卡住的顺序", ""]
+    for step in validation["assembly_plan"].get("steps", [])[1:]:
+        lines.append(f"- **{step['name']}**：{step['copy']} 核对：{step['check']}")
+    lines += ["", "本方案用后装螺母，框架闭合后仍可从槽口补入；最终复紧前每层都要重新校方。", ""]
     return "\n".join(lines)
 
 

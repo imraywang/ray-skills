@@ -103,13 +103,9 @@
   const hardwareEntries = [];
   const hardwareMarker = createHardwareMarker();
   hardwareRoot.add(hardwareMarker);
-  const steps = [
-    { name: '完整结构', copy: '查看所有型材、板材和五金。' },
-    { name: '第 1 步 · 底部框架', copy: '先拼装底部横梁，测量两条对角线并校方。' },
-    { name: '第 2 步 · 立柱', copy: '安装立柱，先临时拧紧，确认垂直。' },
-    { name: '第 3 步 · 各层横梁', copy: '从下往上安装横梁，每层再次核对对角线。' },
-    { name: '第 4 步 · 层板与背板', copy: '安装层板、背板和展示板，确认边缘固定点。' },
-    { name: '第 5 步 · 门板与复紧', copy: '安装门框、门板、合页、把手和磁吸；逐扇调缝后空载复紧。' },
+  const steps = payload.assembly_plan?.steps?.length ? payload.assembly_plan.steps : [
+    { name: '完整结构', copy: '查看所有型材、板材和五金。', check: '清单齐全。' },
+    { name: '第 1 步 · 底部框架', copy: '先拼装底部横梁，测量两条对角线并校方。', check: '底框方正。' },
   ];
 
   setupLighting();
@@ -1335,6 +1331,7 @@
     renderMembers();
     renderHardwareList();
     renderBom();
+    renderQuote();
     renderAssembly();
     renderIssues();
     setupEditor();
@@ -1547,9 +1544,20 @@
   function renderAssembly() {
     const step = steps[state.step];
     const root = document.getElementById('assembly-panel');
-    root.innerHTML = `<div class="assembly-head"><div><p class="section-title">装配演示</p><p class="step-name">${step.name}</p></div><div class="step-controls"><button class="step-button" id="prev-step" aria-label="上一步">←</button><button class="step-button" id="next-step" aria-label="下一步">→</button></div></div><p class="step-copy">${step.copy}</p><div class="progress" aria-label="装配进度">${Array.from({ length: 5 }, (_, index) => `<span class="${index < state.step ? 'done' : ''}"></span>`).join('')}</div>`;
+    root.innerHTML = `<div class="assembly-head"><div><p class="section-title">装配演示</p><p class="step-name">${step.name}</p></div><div class="step-controls"><button class="step-button" id="prev-step" aria-label="上一步">←</button><button class="step-button" id="next-step" aria-label="下一步">→</button></div></div><p class="step-copy">${step.copy}</p>${step.check ? `<div class="issue"><span class="issue-label">这一步要核对</span><p>${step.check}</p></div>` : ''}<div class="progress" aria-label="装配进度">${Array.from({ length: Math.max(1, steps.length - 1) }, (_, index) => `<span class="${index < state.step ? 'done' : ''}"></span>`).join('')}</div>`;
     root.querySelector('#prev-step').onclick = () => { state.step = Math.max(0, state.step - 1); renderAssembly(); applyAppearance(); };
-    root.querySelector('#next-step').onclick = () => { state.step = Math.min(5, state.step + 1); renderAssembly(); applyAppearance(); };
+    root.querySelector('#next-step').onclick = () => { state.step = Math.min(steps.length - 1, state.step + 1); renderAssembly(); applyAppearance(); };
+  }
+
+  function renderQuote() {
+    const root = document.getElementById('quote-panel');
+    const quote = payload.quote || {};
+    const money = (range) => range ? `¥${Number(range[0]).toFixed(2)}–¥${Number(range[1]).toFixed(2)}` : '缺少价格';
+    const rows = (quote.rows || []).map((row) => `<div class="list-row"><span class="list-main"><span class="list-name">${row.item}</span><span class="list-sub">${row.section} · ${row.catalog_id || '按规格制作'} · ${row.qty} ${row.unit} · ${row.price_source}</span></span><span class="list-value">${money(row.amount_range_cny)}</span></div>`).join('');
+    const unknown = (quote.unknown_items || []).map((item) => `<div class="issue blocker"><span class="issue-label">缺价</span><p>${item.item}${item.catalog_id ? ` · ${item.catalog_id}` : ''}</p></div>`).join('');
+    const receipt = (payload.receipt_checklist || []).map((item) => `<div class="list-row"><span class="list-main"><span class="list-name">${item.category} · ${item.item}</span><span class="list-sub">应收到：${item.expected}<br>核对：${item.check}</span></span></div>`).join('');
+    const changed = editState.changed ? '<div class="issue warning"><span class="issue-label">尺寸已修改</span><p>模型和下料已更新；这里仍显示生成文件时的预算基线，导出设计后会按新尺寸重新计算原料支数和费用。</p></div>' : '';
+    root.innerHTML = `<p class="section-title">整套预算</p><div class="assembly-head"><div><p class="step-name">${money(quote.total_range_cny)}</p><p class="step-copy">含 ${quote.contingency_percent || 0}% 预留；${quote.status === 'complete_budget_range' ? '预算项目齐全' : '仍有缺价项'}</p></div></div>${changed}<div class="bom-list">${rows}</div>${unknown ? `<p class="section-title bom-section">仍需补价</p><div class="issue-list">${unknown}</div>` : ''}<p class="section-title bom-section">收货核对</p><div class="bom-list">${receipt}</div>`;
   }
 
   function renderIssues() {

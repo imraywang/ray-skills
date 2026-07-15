@@ -12,6 +12,8 @@ from collections import Counter, defaultdict, deque
 from pathlib import Path
 from typing import Any
 
+from quote_engine import build_quote_bundle, build_receipt_checklist, resolve_design
+
 G = 9.80665
 EPS = 1e-6
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "references" / "product-catalog.json"
@@ -51,6 +53,7 @@ def hydrate_profiles(entries: list[dict[str, Any]], catalog: dict[str, Any]) -> 
                 "supplier_id",
                 "vendor_name",
                 "price_cny_per_m",
+                "system_id",
             ):
                 if profile.get(key) is None:
                     profile[key] = reference.get(key)
@@ -225,6 +228,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
     blockers: list[str] = []
 
     catalog = load_catalog()
+    data = resolve_design(data, catalog)
     catalog_profiles_by_id = {item["id"]: item for item in catalog.get("profiles", [])}
     systems_by_id = {item["id"]: item for item in catalog.get("systems", [])}
     catalog_ids = {
@@ -528,6 +532,13 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
             float(settings.get("end_trim_mm_each", 0)),
         )
 
+    quote = build_quote_bundle(data, catalog, cut_plans)
+    receipt_checklist = build_receipt_checklist(data, catalog, cut_plans)
+    if (data.get("costing") or {}).get("required") and quote["unknown_items"]:
+        names = "、".join(item["item"] for item in quote["unknown_items"][:5])
+        suffix = "等" if len(quote["unknown_items"]) > 5 else ""
+        blockers.append(f"费用估算缺少 {len(quote['unknown_items'])} 项价格：{names}{suffix}")
+
     if errors:
         readiness = "草案"
     elif risk_level == "high":
@@ -553,10 +564,15 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
         "machining_rows": machining_rows,
         "topology_results": topology_results,
         "evidence_summary": evidence_summary,
+        "resolved_design": data,
+        "quote": quote,
+        "receipt_checklist": receipt_checklist,
+        "assembly_plan": data.get("assembly_plan") or {},
     }
 
 
 def markdown(data: dict[str, Any], result: dict[str, Any]) -> str:
+    data = result.get("resolved_design") or data
     project = data.get("project", {})
     lines = [
         f"# {project.get('name', '铝型材方案')} · 检查报告",
@@ -649,6 +665,28 @@ def markdown(data: dict[str, Any], result: dict[str, Any]) -> str:
     if not result["accessory_counts"]:
         lines.append("| — | — | 未提供 | — |")
     lines.append("")
+
+    quote = result["quote"]
+    lines += ["## 费用估算", "", f"- 状态: {quote['status']}", f"- 含预留后的预算区间: **¥{quote['total_range_cny'][0]:.2f}–¥{quote['total_range_cny'][1]:.2f}**", f"- 预留比例: {quote['contingency_percent']:.0f}%", "", "| 类别 | 物料 | 数量 | 单价区间 | 小计区间 | 依据 |", "|---|---|---:|---:|---:|---|"]
+    for row in quote["rows"]:
+        unit_price = row["unit_price_range_cny"]
+        amount = row["amount_range_cny"]
+        lines.append(f"| {row['section']} | {row['item']} | {row['qty']:g} {row['unit']} | {('¥%.2f–¥%.2f' % tuple(unit_price)) if unit_price else '缺失'} | {('¥%.2f–¥%.2f' % tuple(amount)) if amount else '缺失'} | {row['price_source']} |")
+    if quote["unknown_items"]:
+        lines += ["", "缺价项: " + "；".join(item["item"] for item in quote["unknown_items"])]
+    lines += ["", *[f"- {note}" for note in quote["assumptions"]], ""]
+
+    lines += ["## 收货核对", "", "| 类别 | 物料 | 应收到 | 怎么核对 |", "|---|---|---|---|"]
+    for row in result["receipt_checklist"]:
+        lines.append(f"| {row['category']} | {row['item']} | {row['expected']} | {row['check']} |")
+    lines.append("")
+
+    lines += ["## 装配顺序", ""]
+    for index, step in enumerate(result["assembly_plan"].get("steps", []), 1):
+        if index == 1 and step.get("name") == "完整结构":
+            continue
+        lines += [f"{index - 1}. **{step['name'].split('·')[-1].strip()}**：{step['copy']} 复核：{step['check']}"]
+    lines += ["", f"装配可达性: {result['assembly_plan'].get('access_status', '未检查')}。本方案采用后装螺母，遗漏单个螺母时可从槽口补入。", ""]
     return "\n".join(lines) + "\n"
 
 
@@ -663,7 +701,7 @@ def main() -> int:
         print(f"无法读取设计文件: {exc}", file=sys.stderr)
         return 2
     result = validate(data)
-    report = markdown(data, result)
+    report = markdown(result.get("resolved_design") or data, result)
     if args.report:
         args.report.write_text(report, encoding="utf-8")
     else:

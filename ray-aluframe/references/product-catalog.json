@@ -2,7 +2,7 @@
   "schema_version": 1,
   "catalog_name": "Ray Aluframe Product Catalog",
   "catalog_owner": "Ray Skills",
-  "catalog_version": "2026.07.15-3",
+  "catalog_version": "2026.07.15-4",
   "built_on": "2026-07-15",
   "runtime_policy": "self_contained_no_external_lookup",
   "coverage": {
@@ -19,7 +19,8 @@
     "清单按本目录的完整套装输出，不要求用户访问外部目录。",
     "40 系槽 8 与 40 系槽 10 永不自动混配。",
     "供应商价格是采集快照，统一按元/米保存；整支长度按 6100 mm 计算，未显示价格的页面不推测。",
-    "供应商壁厚和米重可用于选型比较，但没有惯性参数时不得用于承载或挠度计算。"
+    "供应商壁厚和米重可用于选型比较，但没有惯性参数时不得用于承载或挠度计算。",
+    "已知欧标 30/40 系槽 8 供应商型材可匹配本目录同槽系五金；这只证明名义搭配，询价时仍需商家确认定位凸台、中心孔和螺纹。"
   ],
   "systems": [
     {
@@ -2899,7 +2900,7 @@
       "name": "欧标3030XQ-1.4",
       "vendor_name": "欧标3030XQ-1.4",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -2923,7 +2924,8 @@
       "source_page": 2,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1306",
@@ -2932,7 +2934,7 @@
       "name": "欧标3030Q-1.5",
       "vendor_name": "欧标3030Q-1.5",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -2956,7 +2958,8 @@
       "source_page": 3,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1307",
@@ -2965,7 +2968,7 @@
       "name": "欧标3030Q-1.8",
       "vendor_name": "欧标3030Q-1.8",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -2989,7 +2992,8 @@
       "source_page": 4,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1308",
@@ -2998,7 +3002,7 @@
       "name": "欧标3030JQ-1.8",
       "vendor_name": "欧标3030JQ-1.8",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3022,7 +3026,8 @@
       "source_page": 5,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1309",
@@ -3031,7 +3036,7 @@
       "name": "欧标3030Q-1.8喷砂银白",
       "vendor_name": "欧标3030Q-1.8喷砂银白",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3055,7 +3060,8 @@
       "source_page": 6,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1310",
@@ -3064,7 +3070,7 @@
       "name": "欧标3030XL-2.0",
       "vendor_name": "欧标3030XL-2.0",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3088,7 +3094,8 @@
       "source_page": 7,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1311",
@@ -3097,7 +3104,7 @@
       "name": "欧标3030L-2.2",
       "vendor_name": "欧标3030L-2.2",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3121,7 +3128,8 @@
       "source_page": 8,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1312",
@@ -3130,7 +3138,7 @@
       "name": "欧标3030Q-黑色",
       "vendor_name": "欧标3030Q-黑色",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3154,7 +3162,8 @@
       "source_page": 9,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1313",
@@ -3163,7 +3172,7 @@
       "name": "欧标3030LZ",
       "vendor_name": "欧标3030LZ",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3187,7 +3196,8 @@
       "source_page": 10,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1314",
@@ -3196,7 +3206,7 @@
       "name": "欧标3030N1-单面封槽",
       "vendor_name": "欧标3030N1-单面封槽",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3220,7 +3230,8 @@
       "source_page": 11,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1315",
@@ -3229,7 +3240,7 @@
       "name": "欧标3030N2圆角",
       "vendor_name": "欧标3030N2圆角",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3253,7 +3264,8 @@
       "source_page": 12,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1316",
@@ -3262,7 +3274,7 @@
       "name": "欧标3030N2直角",
       "vendor_name": "欧标3030N2直角",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3286,7 +3298,8 @@
       "source_page": 13,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1317",
@@ -3295,7 +3308,7 @@
       "name": "欧标3030N2对面封槽",
       "vendor_name": "欧标3030N2对面封槽",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3319,7 +3332,8 @@
       "source_page": 14,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1318",
@@ -3328,7 +3342,7 @@
       "name": "欧标3030N3三面封槽",
       "vendor_name": "欧标3030N3三面封槽",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3352,7 +3366,8 @@
       "source_page": 15,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1319",
@@ -3361,7 +3376,7 @@
       "name": "欧标3030R",
       "vendor_name": "欧标3030R",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3385,7 +3400,8 @@
       "source_page": 16,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1320",
@@ -3394,7 +3410,7 @@
       "name": "欧标3060Q-1.6",
       "vendor_name": "欧标3060Q-1.6",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 60,
@@ -3418,7 +3434,8 @@
       "source_page": 17,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1321",
@@ -3427,7 +3444,7 @@
       "name": "欧标3060Q-1.8喷砂银白",
       "vendor_name": "欧标3060Q-1.8喷砂银白",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 60,
@@ -3451,7 +3468,8 @@
       "source_page": 18,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1322",
@@ -3460,7 +3478,7 @@
       "name": "欧标3060L-2.2",
       "vendor_name": "欧标3060L-2.2",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 60,
@@ -3484,7 +3502,8 @@
       "source_page": 19,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1323",
@@ -3493,7 +3512,7 @@
       "name": "欧标3060N1-60面封槽喷砂黑",
       "vendor_name": "欧标3060N1-60面封槽喷砂黑",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 60,
@@ -3517,7 +3536,8 @@
       "source_page": 20,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1324",
@@ -3526,7 +3546,7 @@
       "name": "电白砂欧标3030Q-1.8",
       "vendor_name": "电白砂欧标3030Q-1.8",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S30-8-M6",
       "series": 30,
       "width_mm": 30,
       "height_mm": 30,
@@ -3550,7 +3570,8 @@
       "source_page": 21,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1325",
@@ -3559,7 +3580,7 @@
       "name": "欧标4040Q",
       "vendor_name": "欧标4040Q",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3583,7 +3604,8 @@
       "source_page": 22,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1326",
@@ -3592,7 +3614,7 @@
       "name": "欧标4040JQ-1.3",
       "vendor_name": "欧标4040JQ-1.3",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3616,7 +3638,8 @@
       "source_page": 23,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1327",
@@ -3625,7 +3648,7 @@
       "name": "欧标4040A",
       "vendor_name": "欧标4040A",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3649,7 +3672,8 @@
       "source_page": 24,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1328",
@@ -3658,7 +3682,7 @@
       "name": "欧标4040JL-2.0",
       "vendor_name": "欧标4040JL-2.0",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3682,7 +3706,8 @@
       "source_page": 25,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1329",
@@ -3691,7 +3716,7 @@
       "name": "欧标4040C",
       "vendor_name": "欧标4040C",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3715,7 +3740,8 @@
       "source_page": 26,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1330",
@@ -3724,7 +3750,7 @@
       "name": "欧标4040L-1.5",
       "vendor_name": "欧标4040L-1.5",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3748,7 +3774,8 @@
       "source_page": 27,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1331",
@@ -3757,7 +3784,7 @@
       "name": "欧标4040L",
       "vendor_name": "欧标4040L",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3781,7 +3808,8 @@
       "source_page": 28,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1332",
@@ -3790,7 +3818,7 @@
       "name": "欧标4040JW",
       "vendor_name": "欧标4040JW",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3814,7 +3842,8 @@
       "source_page": 29,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1333",
@@ -3823,7 +3852,7 @@
       "name": "欧标4040JZ-2.5",
       "vendor_name": "欧标4040JZ-2.5",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3847,7 +3876,8 @@
       "source_page": 30,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1334",
@@ -3856,7 +3886,7 @@
       "name": "欧标4040Z-2.5",
       "vendor_name": "欧标4040Z-2.5",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3880,7 +3910,8 @@
       "source_page": 31,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1335",
@@ -3889,7 +3920,7 @@
       "name": "欧标4040W",
       "vendor_name": "欧标4040W",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3913,7 +3944,8 @@
       "source_page": 32,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1336",
@@ -3922,7 +3954,7 @@
       "name": "欧标4040W喷砂黑",
       "vendor_name": "欧标4040W喷砂黑",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3946,7 +3978,8 @@
       "source_page": 33,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1337",
@@ -3955,7 +3988,7 @@
       "name": "欧标4040DW-5.0",
       "vendor_name": "欧标4040DW-5.0",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -3979,7 +4012,8 @@
       "source_page": 34,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1338",
@@ -3988,7 +4022,7 @@
       "name": "欧标4040LZ",
       "vendor_name": "欧标4040LZ",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4012,7 +4046,8 @@
       "source_page": 35,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1339",
@@ -4021,7 +4056,7 @@
       "name": "欧标4040WZ直角",
       "vendor_name": "欧标4040WZ直角",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4045,7 +4080,8 @@
       "source_page": 36,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1340",
@@ -4054,7 +4090,7 @@
       "name": "欧标4040Q喷砂黑",
       "vendor_name": "欧标4040Q喷砂黑",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4078,7 +4114,8 @@
       "source_page": 37,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1341",
@@ -4087,7 +4124,7 @@
       "name": "欧标4040C喷砂黑",
       "vendor_name": "欧标4040C喷砂黑",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4111,7 +4148,8 @@
       "source_page": 38,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1342",
@@ -4120,7 +4158,7 @@
       "name": "欧标4040L喷砂黑",
       "vendor_name": "欧标4040L喷砂黑",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4144,7 +4182,8 @@
       "source_page": 39,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1343",
@@ -4153,7 +4192,7 @@
       "name": "欧标4040R",
       "vendor_name": "欧标4040R",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4177,7 +4216,8 @@
       "source_page": 40,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1344",
@@ -4210,7 +4250,8 @@
       "source_page": 41,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "unmapped"
     },
     {
       "id": "RAF-JN-1345",
@@ -4219,7 +4260,7 @@
       "name": "欧标4040N1",
       "vendor_name": "欧标4040N1",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4243,7 +4284,8 @@
       "source_page": 42,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1346",
@@ -4252,7 +4294,7 @@
       "name": "欧标4040L-N2-6.8孔",
       "vendor_name": "欧标4040L-N2-6.8孔",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4276,7 +4318,8 @@
       "source_page": 43,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1347",
@@ -4285,7 +4328,7 @@
       "name": "欧标4040Z-N2-6.8孔",
       "vendor_name": "欧标4040Z-N2-6.8孔",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4309,7 +4352,8 @@
       "source_page": 44,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1348",
@@ -4318,7 +4362,7 @@
       "name": "欧标4040N2-10.5",
       "vendor_name": "欧标4040N2-10.5",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4342,7 +4386,8 @@
       "source_page": 45,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1349",
@@ -4351,7 +4396,7 @@
       "name": "欧标4040N2对面封槽",
       "vendor_name": "欧标4040N2对面封槽",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4375,7 +4420,8 @@
       "source_page": 46,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1350",
@@ -4384,7 +4430,7 @@
       "name": "欧标4040N3-8.5孔",
       "vendor_name": "欧标4040N3-8.5孔",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 40,
@@ -4408,7 +4454,8 @@
       "source_page": 47,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1351",
@@ -4417,7 +4464,7 @@
       "name": "欧标4080L-1.5",
       "vendor_name": "欧标4080L-1.5",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4441,7 +4488,8 @@
       "source_page": 48,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1352",
@@ -4450,7 +4498,7 @@
       "name": "欧标4080JL-2.0",
       "vendor_name": "欧标4080JL-2.0",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4474,7 +4522,8 @@
       "source_page": 49,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1353",
@@ -4483,7 +4532,7 @@
       "name": "欧标4080A-1.6",
       "vendor_name": "欧标4080A-1.6",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4507,7 +4556,8 @@
       "source_page": 50,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1354",
@@ -4516,7 +4566,7 @@
       "name": "欧标4080C",
       "vendor_name": "欧标4080C",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4540,7 +4590,8 @@
       "source_page": 51,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1355",
@@ -4549,7 +4600,7 @@
       "name": "欧标4080L",
       "vendor_name": "欧标4080L",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4573,7 +4624,8 @@
       "source_page": 52,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1356",
@@ -4582,7 +4634,7 @@
       "name": "欧标4080Z-2.5",
       "vendor_name": "欧标4080Z-2.5",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4606,7 +4658,8 @@
       "source_page": 53,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1357",
@@ -4615,7 +4668,7 @@
       "name": "欧标4080W",
       "vendor_name": "欧标4080W",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4639,7 +4692,8 @@
       "source_page": 54,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1358",
@@ -4648,7 +4702,7 @@
       "name": "欧标4080JW",
       "vendor_name": "欧标4080JW",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4672,7 +4726,8 @@
       "source_page": 55,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1359",
@@ -4681,7 +4736,7 @@
       "name": "欧标4080LZ直角",
       "vendor_name": "欧标4080LZ直角",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4705,7 +4760,8 @@
       "source_page": 56,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1360",
@@ -4714,7 +4770,7 @@
       "name": "欧标4080L喷砂黑",
       "vendor_name": "欧标4080L喷砂黑",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4738,7 +4794,8 @@
       "source_page": 57,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1361",
@@ -4747,7 +4804,7 @@
       "name": "欧标4080WZ直角",
       "vendor_name": "欧标4080WZ直角",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4771,7 +4828,8 @@
       "source_page": 58,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1362",
@@ -4780,7 +4838,7 @@
       "name": "欧标4080W喷砂黑",
       "vendor_name": "欧标4080W喷砂黑",
       "supplier_id": "RAF-SUP-JIANEN",
-      "system_id": null,
+      "system_id": "RAF-S40-8-M6",
       "series": 40,
       "width_mm": 40,
       "height_mm": 80,
@@ -4804,7 +4862,8 @@
       "source_page": 59,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "catalog_euro_series_match_supplier_confirm"
     },
     {
       "id": "RAF-JN-1363",
@@ -4837,7 +4896,8 @@
       "source_page": 60,
       "engineering_reference": null,
       "data_status": "supplier_geometry_and_mass",
-      "engineering_use": "not_for_load_calculation"
+      "engineering_use": "not_for_load_calculation",
+      "compatibility_status": "unmapped"
     }
   ],
   "products": [
@@ -5106,7 +5166,11 @@
           "qty": 1,
           "optional": true
         }
-      ]
+      ],
+      "connection_method": "exposed_angle_bracket",
+      "machining_required": false,
+      "install_access": "post_install",
+      "assembly_note": "使用后装螺母，框架封闭后仍可安装；先定位，校方后再对角复紧。"
     },
     {
       "id": "RAF-KIT-JOINT-30-8-M6",
@@ -5129,7 +5193,11 @@
           "qty": 1,
           "optional": true
         }
-      ]
+      ],
+      "connection_method": "exposed_angle_bracket",
+      "machining_required": false,
+      "install_access": "post_install",
+      "assembly_note": "使用后装螺母，框架封闭后仍可安装；先定位，校方后再对角复紧。"
     },
     {
       "id": "RAF-KIT-JOINT-40-8-M6",
@@ -5152,7 +5220,11 @@
           "qty": 1,
           "optional": true
         }
-      ]
+      ],
+      "connection_method": "exposed_angle_bracket",
+      "machining_required": false,
+      "install_access": "post_install",
+      "assembly_note": "使用后装螺母，框架封闭后仍可安装；先定位，校方后再对角复紧。"
     },
     {
       "id": "RAF-KIT-SHELF-20-6-M5",
@@ -5274,7 +5346,7 @@
       "default_stock_length_mm": 6100,
       "price_unit": "CNY_per_meter",
       "price_note": "商品页价格按元/米记录；整支价按 6.1 米计算。未加载价格保持为空。",
-      "compatibility_note": "商家后缀保留原样；未完成实物配合验证前，不自动绑定通用连接件套装。"
+      "compatibility_note": "已知欧标 30/40 系槽 8 型材绑定本目录同槽系套装，用于形成直观搭配清单；下单前仍需商家确认槽宽、定位凸台、中心孔和螺纹。槽 6 与特殊截面不自动绑定。"
     }
   ]
 }

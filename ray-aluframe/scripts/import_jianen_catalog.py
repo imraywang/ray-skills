@@ -91,6 +91,11 @@ def build_profile(row: tuple[Any, ...]) -> dict[str, Any]:
     full_stick_weight = round(weight * (STOCK_LENGTH_MM / 1000), 3)
     full_stick_price = round(price * (STOCK_LENGTH_MM / 1000), 2) if price is not None else None
     designation = vendor_name.removeprefix("欧标").removeprefix("电白砂欧标")
+    system_id = None
+    if width == 30 and slot == 8 and height in (30, 60):
+        system_id = "RAF-S30-8-M6"
+    elif width == 40 and slot == 8 and height in (40, 80):
+        system_id = "RAF-S40-8-M6"
     return {
         "id": f"RAF-JN-{image_no}",
         "kind": "profile",
@@ -98,7 +103,7 @@ def build_profile(row: tuple[Any, ...]) -> dict[str, Any]:
         "name": vendor_name,
         "vendor_name": vendor_name,
         "supplier_id": SUPPLIER_ID,
-        "system_id": None,
+        "system_id": system_id,
         "series": 30 if width == 30 else 40 if width == 40 else width,
         "width_mm": width,
         "height_mm": height,
@@ -121,11 +126,20 @@ def build_profile(row: tuple[Any, ...]) -> dict[str, Any]:
         "engineering_reference": None,
         "data_status": "supplier_geometry_and_mass",
         "engineering_use": "not_for_load_calculation",
+        "compatibility_status": "catalog_euro_series_match_supplier_confirm" if system_id else "unmapped",
     }
 
 
 def main() -> None:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+    for kit in catalog.get("kits", []):
+        if kit.get("id", "").startswith("RAF-KIT-JOINT-"):
+            kit.update(
+                connection_method="exposed_angle_bracket",
+                machining_required=False,
+                install_access="post_install",
+                assembly_note="使用后装螺母，框架封闭后仍可安装；先定位，校方后再对角复紧。",
+            )
     catalog["profiles"] = [
         item for item in catalog["profiles"] if item.get("supplier_id") != SUPPLIER_ID
     ]
@@ -144,11 +158,11 @@ def main() -> None:
             "default_stock_length_mm": STOCK_LENGTH_MM,
             "price_unit": "CNY_per_meter",
             "price_note": "商品页价格按元/米记录；整支价按 6.1 米计算。未加载价格保持为空。",
-            "compatibility_note": "商家后缀保留原样；未完成实物配合验证前，不自动绑定通用连接件套装。",
+            "compatibility_note": "已知欧标 30/40 系槽 8 型材绑定本目录同槽系套装，用于形成直观搭配清单；下单前仍需商家确认槽宽、定位凸台、中心孔和螺纹。槽 6 与特殊截面不自动绑定。",
         }
     )
     catalog["profiles"].extend(build_profile(row) for row in ROWS)
-    catalog["catalog_version"] = "2026.07.15-2"
+    catalog["catalog_version"] = "2026.07.15-4"
     catalog["built_on"] = CAPTURED_ON
     catalog["coverage"]["profiles_and_shafts"] = len(catalog["profiles"])
     catalog["coverage"]["supplier_profiles"] = len(ROWS)
@@ -159,6 +173,9 @@ def main() -> None:
     supplier_rule_2 = "供应商壁厚和米重可用于选型比较，但没有惯性参数时不得用于承载或挠度计算。"
     if supplier_rule_2 not in rules:
         rules.append(supplier_rule_2)
+    supplier_rule_3 = "已知欧标 30/40 系槽 8 供应商型材可匹配本目录同槽系五金；这只证明名义搭配，询价时仍需商家确认定位凸台、中心孔和螺纹。"
+    if supplier_rule_3 not in rules:
+        rules.append(supplier_rule_3)
     CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Imported {len(ROWS)} Jianen profiles into {CATALOG}")
 
