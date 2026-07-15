@@ -114,6 +114,7 @@ def html_document(payload: dict[str, Any]) -> str:
   --ease: cubic-bezier(.22,1,.36,1);
 }}
 * {{ box-sizing: border-box; }}
+[hidden] {{ display: none !important; }}
 html, body {{ margin: 0; min-height: 100%; background: var(--paper); color: var(--ink); }}
 body {{ font-family: "Avenir Next", "Futura", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 16px; line-height: 1.5; }}
 button, input {{ font: inherit; }}
@@ -251,7 +252,7 @@ const members = design.members || [];
 const profiles = Object.fromEntries((design.profiles || []).map(p => [p.id,p]));
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const state = {{ yaw:-Math.PI/4, pitch:Math.PI/7, zoom:1, selected:null, hoverIds:new Set(), dragging:false, last:null, dragDistance:0, showPanels:true, showHardware:true, step:0, hit:[] }};
+const state = {{ yaw:-Math.PI/4, pitch:Math.PI/7, zoom:1, selected:null, hoverIds:new Set(), dragging:false, last:null, dragDistance:0, showPanels:true, showHardware:true, showDimensions:true, step:0, hit:[] }};
 const presets = {{ iso:[-Math.PI/4,Math.PI/7], front:[0,0], side:[-Math.PI/2,0], top:[0,Math.PI/2] }};
 const roleNames = {{post:'立柱','level beam':'层横梁','side beam':'侧横梁'}};
 const allPoints = members.flatMap(m => [m.start,m.end]);
@@ -274,7 +275,8 @@ function projection() {{
   const projected=allPoints.map(rotated);
   const xs=projected.map(p=>p[0]), ys=projected.map(p=>p[1]);
   const spanX=Math.max(...xs)-Math.min(...xs)||1, spanY=Math.max(...ys)-Math.min(...ys)||1;
-  const scale=Math.min((rect.width-110)/spanX,(rect.height-110)/spanY)*state.zoom;
+  const margin=state.showDimensions?(rect.width<560?130:190):110;
+  const scale=Math.min(Math.max(80,rect.width-margin)/spanX,Math.max(80,rect.height-margin)/spanY)*state.zoom;
   return {{scale,cx:rect.width/2,cy:rect.height/2}};
 }}
 function screen(p,proj) {{ const r=rotated(p); return [proj.cx+r[0]*proj.scale,proj.cy+r[1]*proj.scale,r[2]]; }}
@@ -299,6 +301,36 @@ function memberColor(m) {{
   return '#2172a8';
 }}
 function polygonDepth(item) {{ return item.corners.reduce((sum,p)=>sum+rotated(p)[2],0)/item.corners.length; }}
+function drawDimensionLine(start,end,label,proj) {{
+  const a=screen(start,proj), b=screen(end,proj), dx=b[0]-a[0], dy=b[1]-a[1], length=Math.hypot(dx,dy);
+  if (length<34) return;
+  const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2];
+  let ox=mid[0]-proj.cx, oy=mid[1]-proj.cy, outward=Math.hypot(ox,oy);
+  if (outward<1) {{ ox=-dy; oy=dx; outward=length; }}
+  const ux=ox/outward, uy=oy/outward, gap=canvas.getBoundingClientRect().width<560?20:28;
+  const oa=[a[0]+ux*gap,a[1]+uy*gap], ob=[b[0]+ux*gap,b[1]+uy*gap];
+  const tx=-dy/length*6, ty=dx/length*6;
+  ctx.save(); ctx.globalAlpha=1; ctx.lineCap='butt'; ctx.lineWidth=1.5; ctx.strokeStyle='#8a5a2f';
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(oa[0],oa[1]);ctx.moveTo(b[0],b[1]);ctx.lineTo(ob[0],ob[1]);ctx.stroke();
+  ctx.setLineDash([]); ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(oa[0],oa[1]);ctx.lineTo(ob[0],ob[1]);
+  ctx.moveTo(oa[0]-tx,oa[1]-ty);ctx.lineTo(oa[0]+tx,oa[1]+ty);
+  ctx.moveTo(ob[0]-tx,ob[1]-ty);ctx.lineTo(ob[0]+tx,ob[1]+ty);ctx.stroke();
+  const lx=(oa[0]+ob[0])/2+ux*13, ly=(oa[1]+ob[1])/2+uy*13;
+  ctx.font='700 12px "Avenir Next", "PingFang SC", sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const tw=ctx.measureText(label).width;
+  ctx.fillStyle='#fbf8f1';ctx.fillRect(lx-tw/2-6,ly-10,tw+12,20);
+  ctx.strokeStyle='#d4c4b3';ctx.lineWidth=1;ctx.strokeRect(lx-tw/2-6,ly-10,tw+12,20);
+  ctx.fillStyle='#4d3421';ctx.fillText(label,lx,ly+.5);ctx.restore();
+}}
+function drawDimensions(proj) {{
+  if (!state.showDimensions) return;
+  const minX=bounds[0][0], maxX=bounds[0][1], minY=bounds[1][0], maxY=bounds[1][1], minZ=bounds[2][0], maxZ=bounds[2][1];
+  drawDimensionLine([minX,minY,minZ],[maxX,minY,minZ],`宽 ${{envelope[0]}} mm`,proj);
+  drawDimensionLine([maxX,minY,minZ],[maxX,maxY,minZ],`深 ${{envelope[1]}} mm`,proj);
+  drawDimensionLine([maxX,maxY,minZ],[maxX,maxY,maxZ],`高 ${{envelope[2]}} mm`,proj);
+}}
 function draw() {{
   const rect=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
   const w=Math.round(rect.width*dpr), h=Math.round(rect.height*dpr);
@@ -333,6 +365,7 @@ function draw() {{
       ctx.beginPath();ctx.arc(p[0],p[1],state.step===5?7:5,0,Math.PI*2);ctx.fill();ctx.stroke();
     }});
   }}
+  drawDimensions(proj);
   ctx.restore();
 }}
 function selectMember(id) {{ state.selected=id; state.hoverIds.clear(); renderSelection(); renderMembers(); draw(); }}
@@ -392,7 +425,7 @@ document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{{
 document.getElementById('reset-view').onclick=()=>{{[state.yaw,state.pitch]=presets.iso;state.zoom=1;draw();}};
 document.getElementById('show-panels').onchange=e=>{{state.showPanels=e.target.checked;draw();}};
 document.getElementById('show-hardware').onchange=e=>{{state.showHardware=e.target.checked;draw();}};
-document.getElementById('show-dimensions').onchange=e=>document.getElementById('dimensions').hidden=!e.target.checked;
+document.getElementById('show-dimensions').onchange=e=>{{state.showDimensions=e.target.checked;document.getElementById('dimensions').hidden=!e.target.checked;draw();}};
 canvas.addEventListener('pointerdown',e=>{{state.dragging=true;state.last=[e.clientX,e.clientY];state.dragDistance=0;canvas.classList.add('dragging');canvas.setPointerCapture(e.pointerId);}});
 canvas.addEventListener('pointermove',e=>{{if(!state.dragging)return;const dx=e.clientX-state.last[0],dy=e.clientY-state.last[1];state.last=[e.clientX,e.clientY];state.dragDistance+=Math.hypot(dx,dy);state.yaw+=dx*.008;state.pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,state.pitch-dy*.006));draw();}});
 canvas.addEventListener('pointerup',e=>{{state.dragging=false;canvas.classList.remove('dragging');canvas.releasePointerCapture(e.pointerId);}});
