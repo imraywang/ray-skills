@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "verified_on": "2026-07-14",
+  "purpose": "面向个人玩家和淘宝采购的统一搭配规格；输出时不区分目录来源，只按系列、外形、槽宽和螺纹配套。",
+  "default_systems": [
+    {
+      "id": "S20-6-M5",
+      "name": "20 系槽 6 / M5",
+      "system": "eu",
+      "series": 20,
+      "slot_width_mm": 6,
+      "slot_depth_reference_mm": 6,
+      "default_thread": "M5",
+      "common_profile_sizes_mm": [[20, 20], [20, 40], [20, 60], [20, 80]],
+      "standard_angle": {
+        "name": "20 系槽 6 L 型外露角码",
+        "reference_id": "HA11-YZ-206-2020",
+        "hole_diameter_mm": 5.2,
+        "thickness_mm": 3,
+        "bolts_per_piece": 2,
+        "t_nuts_per_piece": 2
+      },
+      "market_search_terms": ["欧标2020角码 槽6 M5", "2020后装弹片螺母 M5", "2020型材 槽6"]
+    },
+    {
+      "id": "S30-8-M6",
+      "name": "30 系槽 8 / M6",
+      "system": "eu",
+      "series": 30,
+      "slot_width_mm": 8,
+      "slot_depth_reference_mm": 7,
+      "default_thread": "M6",
+      "common_profile_sizes_mm": [[30, 30], [30, 60], [30, 90], [30, 120]],
+      "standard_angle": {
+        "name": "30 系槽 8 L 型外露角码",
+        "reference_id": "HA11-YZ-308-3030",
+        "hole_diameter_mm": 6.2,
+        "thickness_mm": 4,
+        "bolts_per_piece": 2,
+        "t_nuts_per_piece": 2
+      },
+      "market_search_terms": ["欧标3030角码 槽8 M6", "3030后装弹片螺母 M6", "3030 3060型材 槽8"]
+    },
+    {
+      "id": "S40-8-M6",
+      "name": "40 系槽 8 / M6",
+      "system": "eu",
+      "series": 40,
+      "slot_width_mm": 8,
+      "slot_depth_reference_mm": 8,
+      "default_thread": "M6",
+      "common_profile_sizes_mm": [[40, 40], [40, 80], [40, 120], [80, 80]],
+      "standard_angle": {
+        "name": "40 系槽 8 L 型外露角码",
+        "reference_id": "L-40",
+        "hole_diameter_mm": 6.2,
+        "thickness_mm": 4,
+        "bolts_per_piece": 2,
+        "t_nuts_per_piece": 2
+      },
+      "market_search_terms": ["欧标4040角码 槽8 M6", "4040后装弹片螺母 M6", "4040 4080型材 槽8"]
+    }
+  ],
+  "recognized_but_not_default": [
+    {
+      "name": "15 系槽 6",
+      "reason": "当前连接件目录未形成完整配套，不能自动给出直购清单。"
+    },
+    {
+      "name": "40 系槽 10",
+      "reason": "与 40 系槽 8 不通用，当前连接件目录未形成完整配套。"
+    },
+    {
+      "name": "45 系槽 10",
+      "reason": "型材规格成立，但当前连接件目录未形成完整配套。"
+    },
+    {
+      "name": "50 系槽 10",
+      "reason": "型材规格成立，但当前连接件目录未形成完整配套。"
+    }
+  ],
+  "accessory_defaults": {
+    "F-BASE-PLATE": {
+      "name": "底脚连接板 + 大脚掌调节脚",
+      "selection": "较高或较重结构优先；螺杆先按 M8/M10 候选，随底脚板整套购买。"
+    },
+    "P-BRACKET-UNDER-SHELF": {
+      "name": "层板底部小角码固定套装",
+      "selection": "每个小角码配同槽系螺栓和后装槽螺母，木板侧配不过长的木螺钉。"
+    },
+    "P-POST-INSTALL-HOLDER": {
+      "name": "后装面板夹 / 槽螺母支座",
+      "selection": "用于背板、展示板和以后需要拆换的面板，按板厚选择夹持范围。"
+    },
+    "P-TAPPED-BRACKET": {
+      "name": "带面板孔的结构角码",
+      "selection": "用于刚性背板多点固定；孔径和板材螺钉由商家配套。"
+    }
+  },
+  "source_checks": [
+    {
+      "scope": "20 系槽 6 与 M5 配套",
+      "url": "https://sg.misumi-ec.com/pdf/fa/2013/p1839.pdf"
+    },
+    {
+      "scope": "30 系槽 8、槽深参考 7 mm 与 M6 配套",
+      "url": "https://th.misumi-ec.com/th/pdf/fa/2013/p1845_1847_1848.pdf"
+    },
+    {
+      "scope": "40 系槽 8 与 M6 槽螺母配套",
+      "url": "https://www.item24.com/en-fi/t-slot-nut-8-st-m6-stainless-38851"
+    },
+    {
+      "scope": "40 系槽 10 是独立体系",
+      "url": "https://uk.misumi-ec.com/pdf/fa/2014/P2_0673-0674_F40_EN.pdf"
+    }
+  ]
+}
