@@ -132,7 +132,7 @@
 }
 ```
 
-调节脚使用 `{"type":"leveling_foot","at":[0,0,0],"stem_mm":35,"pad_diameter_mm":42}`。面板洞孔仅作效果时可加 `"pattern":"pegboard"`。`visuals` 中出现的物件仍必须在 `accessories` 中有对应采购项。
+调节脚使用 `{"type":"leveling_foot","at":[0,0,0],"stem_mm":35,"pad_diameter_mm":42}`。脚轮使用 `{"type":"caster","at":[0,0,80],"stem_mm":28,"wheel_diameter_mm":65,"wheel_width_mm":24}`。面板洞孔仅作效果时可加 `"pattern":"pegboard"`。`visuals` 中出现的物件仍必须在 `accessories` 中有对应采购项。
 
 ## 8. 就绪判定
 

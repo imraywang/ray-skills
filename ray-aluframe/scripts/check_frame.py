@@ -87,20 +87,80 @@ def is_tbd(value: Any) -> bool:
 
 def cut_plan(lengths: list[tuple[str, float]], stock: float, kerf: float, trim: float) -> list[dict[str, Any]]:
     usable = stock - 2 * trim
-    bars: list[dict[str, Any]] = []
-    for member_id, length in sorted(lengths, key=lambda item: item[1], reverse=True):
+    capacity = usable + kerf
+    pieces = sorted(lengths, key=lambda item: item[1], reverse=True)
+    if any(length > usable + EPS for _, length in pieces):
+        return [{"cuts": [(member_id, length)], "used": length, "remaining_usable": 0.0} for member_id, length in pieces]
+
+    greedy: list[list[tuple[str, float]]] = []
+    greedy_used: list[float] = []
+    for member_id, length in pieces:
+        size = length + kerf
         placed = False
-        for bar in bars:
-            extra = length + (kerf if bar["cuts"] else 0)
-            if bar["used"] + extra <= usable + EPS:
-                bar["cuts"].append((member_id, length))
-                bar["used"] += extra
+        for index, used in enumerate(greedy_used):
+            if used + size <= capacity + EPS:
+                greedy[index].append((member_id, length))
+                greedy_used[index] += size
                 placed = True
                 break
         if not placed:
-            bars.append({"cuts": [(member_id, length)], "used": length})
-    for bar in bars:
-        bar["remaining_usable"] = max(0.0, usable - bar["used"])
+            greedy.append([(member_id, length)])
+            greedy_used.append(size)
+
+    total_size = sum(length + kerf for _, length in pieces)
+    lower_bound = max(1, math.ceil((total_size - EPS) / capacity))
+    packed = greedy
+    node_limit = 500_000
+
+    for target in range(lower_bound, len(greedy)):
+        bins: list[list[tuple[str, float]]] = [[] for _ in range(target)]
+        used = [0.0] * target
+        nodes = 0
+
+        def place(index: int) -> bool:
+            nonlocal nodes
+            nodes += 1
+            if nodes > node_limit:
+                return False
+            if index == len(pieces):
+                return True
+            remaining = sum(length + kerf for _, length in pieces[index:])
+            if remaining > sum(capacity - value for value in used) + EPS:
+                return False
+            member_id, length = pieces[index]
+            size = length + kerf
+            seen_used: set[float] = set()
+            for bin_index in range(target):
+                marker = round(used[bin_index], 6)
+                if marker in seen_used:
+                    continue
+                seen_used.add(marker)
+                if used[bin_index] + size > capacity + EPS:
+                    continue
+                bins[bin_index].append((member_id, length))
+                used[bin_index] += size
+                if place(index + 1):
+                    return True
+                used[bin_index] -= size
+                bins[bin_index].pop()
+                if used[bin_index] <= EPS:
+                    break
+            return False
+
+        if place(0):
+            packed = bins
+            break
+
+    bars: list[dict[str, Any]] = []
+    for cuts in packed:
+        used_length = sum(length for _, length in cuts) + kerf * max(0, len(cuts) - 1)
+        bars.append(
+            {
+                "cuts": cuts,
+                "used": used_length,
+                "remaining_usable": max(0.0, usable - used_length),
+            }
+        )
     return bars
 
 
@@ -330,6 +390,15 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
             errors.append(f"载荷 {load.get('id', '?')}: 构件不存在")
             continue
         profile = profiles.get(member.get("profile_id"))
+        inertia_axis = str(load.get("inertia_axis") or "y")
+        missing_engineering = [
+            key for key in ("e_mpa", f"i{inertia_axis}_mm4") if not profile or profile.get(key) is None
+        ]
+        if missing_engineering:
+            blockers.append(
+                f"{load.get('id', '?')}: 型材缺少弹性模量或 {inertia_axis.upper()} 向惯性参数，未做横梁变形初查"
+            )
+            continue
         try:
             result = beam_result(load, member, profile)
         except (KeyError, TypeError, ValueError, ZeroDivisionError) as exc:
@@ -425,7 +494,8 @@ def markdown(data: dict[str, Any], result: dict[str, Any]) -> str:
             strength = item["strength_status"] or "未检查"
             lines.append(f"| {item['load_id']} | {item['member_id']} | {item['deflection_mm']:.2f} | {item['limit_mm']:.2f} | {item['status']} | {strength} |")
     else:
-        lines.append("| — | — | — | — | 未提供载荷 | 未检查 |")
+        state = "载荷已提供但参数不足" if data.get("loads") else "未提供载荷"
+        lines.append(f"| — | — | — | — | {state} | 未检查 |")
     lines.append("")
 
     lines += ["## 型材汇总与下料", ""]

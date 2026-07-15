@@ -432,6 +432,17 @@ function drawFoot(foot,proj) {{
   ctx.fillStyle=state.renderMode==='realistic'?'#747d81':'#6d7a83';ctx.strokeStyle='#30373a';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(bottom[0],bottom[1],radius,Math.max(2.5,radius*.34),0,0,Math.PI*2);ctx.fill();ctx.stroke();
   ctx.fillStyle='#c4cacc';ctx.fillRect(top[0]-4,top[1]-2,8,4);ctx.restore();
 }}
+function drawCaster(caster,proj) {{
+  const top=screen(caster.at,proj),stemBottom=screen([caster.at[0],caster.at[1],caster.at[2]-(caster.stem_mm||28)],proj);
+  const wheelRadius=Math.max(7,Math.min(15,(caster.wheel_diameter_mm||65)*proj.scale/2));
+  const wheelWidth=Math.max(5,Math.min(10,(caster.wheel_width_mm||24)*proj.scale));
+  const center=[stemBottom[0],stemBottom[1]+wheelRadius];ctx.save();
+  ctx.fillStyle='#70797e';ctx.strokeStyle='#3a4246';ctx.lineWidth=1.5;ctx.fillRect(top[0]-7,top[1]-3,14,6);ctx.strokeRect(top[0]-7,top[1]-3,14,6);
+  ctx.strokeStyle='#4d565b';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(top[0],top[1]+2);ctx.lineTo(stemBottom[0],stemBottom[1]);ctx.stroke();
+  ctx.strokeStyle='#7a8489';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(center[0]-wheelWidth/2-3,stemBottom[1]);ctx.lineTo(center[0]-wheelWidth/2,center[1]);ctx.moveTo(center[0]+wheelWidth/2+3,stemBottom[1]);ctx.lineTo(center[0]+wheelWidth/2,center[1]);ctx.stroke();
+  ctx.fillStyle=state.renderMode==='realistic'?'#24292c':'#596269';ctx.strokeStyle='#9aa3a8';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(center[0],center[1],wheelWidth/2,wheelRadius,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#c5cbce';ctx.beginPath();ctx.arc(center[0],center[1],2.2,0,Math.PI*2);ctx.fill();ctx.restore();
+}}
 function draw() {{
   const rect=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
   const w=Math.round(rect.width*dpr), h=Math.round(rect.height*dpr);
@@ -453,6 +464,7 @@ function draw() {{
   }});
   if (state.showHardware && state.step!==1 && state.step!==2 && state.step!==3) {{
     (design.visuals||[]).filter(v=>v.type==='leveling_foot').sort((a,b)=>rotated(a.at)[2]-rotated(b.at)[2]).forEach(foot=>drawFoot(foot,proj));
+    (design.visuals||[]).filter(v=>v.type==='caster').sort((a,b)=>rotated(a.at)[2]-rotated(b.at)[2]).forEach(caster=>drawCaster(caster,proj));
     (design.joints||[]).sort((a,b)=>rotated(a.at)[2]-rotated(b.at)[2]).forEach(j=>{{
       if(state.renderMode==='realistic')drawRealJoint(j,proj);else drawStructureJoint(j,proj);
     }});

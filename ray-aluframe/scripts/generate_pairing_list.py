@@ -68,6 +68,12 @@ def _accessory_display(
 ) -> tuple[str, str]:
     category = str(item.get("category") or "")
     description = str(item.get("description") or "")
+    if category == "caster":
+        return "带刹车脚轮", "核对单轮额定载荷、安装板孔距、总高、轮径和刹车方式；至少两只带刹车"
+    if category == "worktop":
+        return description or "木质台面", "按确认外形开料；台面固定件和防水耐热要求待确认"
+    if category == "panel":
+        return description or "柜体板 / 门板", "按框架净尺寸开料；厚度、合页、滑轨和周边固定方式待确认"
     if category == "foot":
         if system:
             foot_id = f"RAF-A-FOOT-PLATE-{system['series']}"
@@ -102,7 +108,7 @@ def _accessory_display(
         kit_id = system.get("panel_kit_id")
         return "后装面板固定套装", f"本目录编号 {kit_id}"
     name = description or category or "附件"
-    return name, "按本目录同槽系套装选择"
+    return name, "按本目录同槽系套装选择" if system else "未绑定配套体系，规格和固定方式待确认"
 
 
 def generate(design: dict[str, Any], catalog: dict[str, Any]) -> str:

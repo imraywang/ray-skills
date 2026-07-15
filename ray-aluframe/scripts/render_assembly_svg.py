@@ -28,6 +28,10 @@ def visual_points(item: dict[str, Any]) -> list[list[float]]:
     if item.get("type") == "leveling_foot" and valid_point(item.get("at")):
         at = item["at"]
         return [at, [at[0], at[1], at[2] - float(item.get("stem_mm", 35))]]
+    if item.get("type") == "caster" and valid_point(item.get("at")):
+        at = item["at"]
+        drop = float(item.get("stem_mm", 28)) + float(item.get("wheel_diameter_mm", 65))
+        return [at, [at[0], at[1], at[2] - drop]]
     return []
 
 
@@ -116,6 +120,21 @@ def svg(data: dict[str, Any], width: int = 1100, height: int = 980) -> str:
             f'<ellipse cx="{x:.1f}" cy="{y + stem_px - 2:.1f}" rx="{pad_px/2.4:.1f}" ry="{max(2.5, pad_px/9):.1f}" fill="#5d6670" opacity="0.75"/>',
         ]
 
+    casters = [item for item in visuals if item.get("type") == "caster" and valid_point(item.get("at"))]
+    for item in sorted(casters, key=lambda caster: screen(caster["at"])[1]):
+        x, y = screen(item["at"])
+        stem_px = max(7.0, float(item.get("stem_mm", 28)) * scale)
+        wheel_px = max(15.0, float(item.get("wheel_diameter_mm", 65)) * scale)
+        wheel_width_px = max(6.0, float(item.get("wheel_width_mm", 24)) * scale)
+        wheel_y = y + stem_px + wheel_px / 2
+        out += [
+            f'<rect x="{x-8:.1f}" y="{y-3:.1f}" width="16" height="6" rx="2" fill="#737d83" stroke="#3f474b"/>',
+            f'<line x1="{x:.1f}" y1="{y+2:.1f}" x2="{x:.1f}" y2="{wheel_y-wheel_px/2+2:.1f}" stroke="#4a5358" stroke-width="6"/>',
+            f'<path d="M {x-wheel_width_px/2-3:.1f} {wheel_y-wheel_px/3:.1f} L {x-wheel_width_px/2:.1f} {wheel_y:.1f} M {x+wheel_width_px/2+3:.1f} {wheel_y-wheel_px/3:.1f} L {x+wheel_width_px/2:.1f} {wheel_y:.1f}" stroke="#6e787d" stroke-width="4" fill="none"/>',
+            f'<ellipse cx="{x:.1f}" cy="{wheel_y:.1f}" rx="{wheel_width_px/2:.1f}" ry="{wheel_px/2:.1f}" fill="#22272a" stroke="#59636a" stroke-width="2" filter="url(#smallShadow)"/>',
+            f'<ellipse cx="{x:.1f}" cy="{wheel_y:.1f}" rx="{max(2.0,wheel_width_px/5):.1f}" ry="{max(2.0,wheel_px/7):.1f}" fill="#c5cbce"/>',
+        ]
+
     def depth(member: dict[str, Any]) -> float:
         return sum(member["start"]) + sum(member["end"])
 
@@ -149,7 +168,7 @@ def svg(data: dict[str, Any], width: int = 1100, height: int = 980) -> str:
     footer_y = height - 60
     out += [
         f'<rect x="55" y="{footer_y-24}" width="{width-110}" height="48" rx="8" fill="#ffffff" fill-opacity="0.88" stroke="#cbd5e1"/>',
-        f'<text x="75" y="{footer_y+7}" font-size="16" fill="#334155">框架外形 {html.escape(size_text)} · 银色：阳极氧化铝型材 · 灰色节点：连接件 · 黑色：调节脚</text>',
+        f'<text x="75" y="{footer_y+7}" font-size="16" fill="#334155">框架外形 {html.escape(size_text)} · 银色：阳极氧化铝型材 · 灰色节点：连接件 · 黑色：底脚 / 脚轮</text>',
         '</svg>',
     ]
     return "\n".join(out) + "\n"
