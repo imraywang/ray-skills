@@ -25,6 +25,7 @@
   "ground_points": [],
   "loads": [],
   "accessories": [],
+  "reference_image": {},
   "reference_topology": {},
   "visuals": []
 }
@@ -59,6 +60,9 @@
   "role": "level beam",
   "start": [0, 0, 150],
   "end": [1200, 0, 150],
+  "evidence_basis": "visible",
+  "evidence_confidence": "high",
+  "evidence_note": "参考图正面可直接看到",
   "machining": [
     {"end": "A", "operation": "TBD after connector selection"}
   ]
@@ -66,6 +70,8 @@
 ```
 
 脚本从坐标计算长度。首版只接受平行于 x/y/z 轴的直杆。斜撑可先作为附件说明,或在后续扩展中支持。
+
+从参考图还原的设计还要为每个构件标注识别依据:`visible` 表示原图直接可见,`inferred` 表示为了形成完整结构而推测,`confirmed` 表示用户用尺寸、多角度照片或明确回复确认。置信度使用 `high`、`medium`、`low`;推测项必须在 `evidence_note` 说明依据。
 
 ## 4. 节点
 
@@ -125,6 +131,14 @@
 
 ```json
 {
+  "reference_image": {
+    "path": "/absolute/path/reference.jpg",
+    "label": "咖啡柜参考图",
+    "default_opacity": 48,
+    "object_fit": "contain",
+    "mirror_x": false,
+    "transform": {"scale": 1, "translate_x_pct": 0, "translate_y_pct": 0}
+  },
   "reference_topology": {
     "front_plane_y_mm": 0,
     "regions": [
@@ -134,6 +148,7 @@
         "x_range_mm": [0, 780],
         "z_range_mm": [80, 900],
         "expected_rows": 3,
+        "side_label": "参考图左侧",
         "confidence": "high"
       },
       {
@@ -142,12 +157,15 @@
         "x_range_mm": [780, 1200],
         "z_range_mm": [80, 900],
         "expected_rows": 1,
+        "side_label": "参考图右侧",
         "confidence": "high"
       }
     ]
   }
 }
 ```
+
+`reference_image.path` 可用绝对路径,也可相对设计 JSON 所在目录。生成交互预览时图片会嵌入 HTML,成品文件不再依赖原路径。`default_opacity` 控制校对模式初始透明度;`mirror_x` 只在原图确实被镜像时使用。`transform` 用于轻微平移和缩放,不得用它伪装透视已经精确校准。
 
 `x_range_mm` 和 `z_range_mm` 是该正面区域的边界。`expected_rows` 由参考图中明确可见的水平分格得到。脚本只统计位于正面、横跨整个区域、且处于上下边界之间的横向构件。无法看清时使用 `confidence=medium/low`,并在交付前请用户确认,不得把推测写成高置信度事实。
 
@@ -162,7 +180,10 @@
   "corners": [[0, 0, 150], [600, 0, 150], [600, 350, 150], [0, 350, 150]],
   "fill": "#d8c6a5",
   "edge": "#8d765b",
-  "opacity": 0.95
+  "opacity": 0.95,
+  "evidence_basis": "inferred",
+  "evidence_confidence": "medium",
+  "evidence_note": "原图显示门板边界,内部层板为结构推测"
 }
 ```
 

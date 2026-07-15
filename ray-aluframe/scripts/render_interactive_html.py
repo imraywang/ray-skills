@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import copy
 import json
 import math
+import mimetypes
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -48,8 +50,32 @@ def _compact_issues(issues: list[dict[str, str]]) -> list[dict[str, str]]:
     return sorted(compacted, key=lambda issue: (order[issue["severity"]], issue["text"]))
 
 
-def _payload(data: dict[str, Any]) -> dict[str, Any]:
+def _embed_reference_image(working: dict[str, Any], design_dir: Path) -> None:
+    reference = working.get("reference_image")
+    if not isinstance(reference, dict):
+        return
+    if reference.get("data_uri"):
+        reference.pop("path", None)
+        return
+    raw_path = reference.get("path")
+    if not raw_path:
+        raise ValueError("reference_image 需要 path 或 data_uri")
+    image_path = Path(str(raw_path)).expanduser()
+    if not image_path.is_absolute():
+        image_path = design_dir / image_path
+    if not image_path.is_file():
+        raise ValueError(f"参考图不存在: {image_path}")
+    mime = mimetypes.guess_type(image_path.name)[0] or "application/octet-stream"
+    if not mime.startswith("image/"):
+        raise ValueError(f"参考图格式不受支持: {image_path.name}")
+    reference["data_uri"] = f"data:{mime};base64,{base64.b64encode(image_path.read_bytes()).decode('ascii')}"
+    reference["source_name"] = image_path.name
+    reference.pop("path", None)
+
+
+def _payload(data: dict[str, Any], design_dir: Path) -> dict[str, Any]:
     working = copy.deepcopy(data)
+    _embed_reference_image(working, design_dir)
     result = validate(working)
     working["profiles"] = list(result["profiles"].values())
 
@@ -93,6 +119,7 @@ def html_document(payload: dict[str, Any]) -> str:
     asset_dir = Path(__file__).resolve().parent.parent / "assets"
     three_runtime = (asset_dir / "three-runtime.min.js").read_text(encoding="utf-8").replace("</", "<\\/")
     viewer_runtime = (asset_dir / "interactive-viewer.js").read_text(encoding="utf-8").replace("</", "<\\/")
+    reference_review_runtime = (asset_dir / "reference-review.js").read_text(encoding="utf-8").replace("</", "<\\/")
     return f'''<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -142,13 +169,25 @@ h1 {{ margin: 0; font-size: clamp(1.35rem,2.2vw,2.25rem); line-height: 1.1; lett
 .mode-note {{ color: var(--muted); font-size: .7rem; padding-left: 2px; }}
 .toggle {{ min-height: 42px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 0 4px; }}
 .toggle input {{ width: 18px; height: 18px; accent-color: var(--blue); }}
+.reference-tools {{ display: flex; flex: 0 0 auto; align-items: center; gap: 8px; padding-left: 10px; border-left: 1px solid var(--line); }}
+.reference-tools .tool-button, .reference-slider {{ flex: 0 0 auto; white-space: nowrap; }}
+.reference-slider {{ display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: .72rem; font-weight: 750; }}
+.reference-slider input {{ width: 112px; accent-color: var(--orange); }}
 .workspace {{ min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(320px,390px); }}
 .viewer {{ position: relative; min-height: 560px; overflow: hidden; background: #202428; }}
-.viewer::before {{ content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(circle at 54% 40%,transparent 38%,rgba(0,0,0,.22) 100%); }}
-canvas {{ position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }}
+.viewer::before {{ content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2; background: radial-gradient(circle at 54% 40%,transparent 38%,rgba(0,0,0,.22) 100%); }}
+canvas {{ position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }}
 canvas.dragging {{ cursor: grabbing; }}
-.view-help {{ position: absolute; z-index: 2; left: 18px; bottom: 16px; margin: 0; color: var(--muted); font-size: .8rem; background: var(--surface); border: 1px solid var(--line); padding: 8px 11px; }}
-.dimensions {{ position: absolute; z-index: 2; top: 16px; left: 18px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 36px); pointer-events: none; }}
+.reference-layer {{ position: absolute; z-index: 1; inset: 0; pointer-events: none; overflow: hidden; }}
+.reference-layer img {{ width: 100%; height: 100%; object-fit: contain; transform-origin: 50% 50%; display: block; }}
+.reference-regions {{ position: absolute; z-index: 4; left: 24px; right: 24px; bottom: 76px; display: flex; align-items: stretch; pointer-events: none; }}
+.reference-region {{ min-width: 0; padding: 9px 11px; border: 1px solid oklch(91% .025 84 / .9); background: oklch(20% .035 248 / .82); color: var(--surface); }}
+.reference-region + .reference-region {{ border-left: 0; }}
+.reference-region strong {{ display: block; font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+.reference-region span {{ display: block; color: oklch(87% .07 84); font-size: .68rem; margin-top: 2px; }}
+.reference-note {{ position: absolute; z-index: 4; top: 16px; right: 18px; max-width: min(360px,calc(100% - 36px)); padding: 8px 10px; background: oklch(20% .035 248 / .84); color: var(--surface); font-size: .72rem; pointer-events: none; }}
+.view-help {{ position: absolute; z-index: 4; left: 18px; bottom: 16px; margin: 0; color: var(--muted); font-size: .8rem; background: var(--surface); border: 1px solid var(--line); padding: 8px 11px; }}
+.dimensions {{ position: absolute; z-index: 4; top: 16px; left: 18px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 36px); pointer-events: none; }}
 .dimension {{ padding: 6px 9px; background: var(--surface); border: 1px solid var(--line); font-size: .78rem; font-variant-numeric: tabular-nums; box-shadow: 0 5px 18px oklch(29% .03 248 / .08); }}
 .render-failure {{ position: absolute; z-index: 4; inset: 50% auto auto 50%; translate: -50% -50%; width: min(420px,calc(100% - 36px)); padding: 18px 20px; display: grid; gap: 6px; color: #fff; background: #762d20; border: 1px solid #ff9b72; box-shadow: 0 18px 60px rgba(0,0,0,.35); }}
 .render-failure span {{ color: #ffe3d8; font-size: .86rem; }}
@@ -179,6 +218,11 @@ canvas.dragging {{ cursor: grabbing; }}
 .list-name {{ display: block; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
 .list-sub {{ display: block; color: var(--muted); font-size: .75rem; margin-top: 2px; }}
 .list-value {{ font-weight: 800; font-variant-numeric: tabular-nums; }}
+.evidence-badge {{ display: inline-flex; align-items: center; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: .64rem; font-weight: 800; vertical-align: 1px; }}
+.evidence-visible {{ color: oklch(39% .11 53); background: oklch(92% .07 77); }}
+.evidence-inferred {{ color: oklch(37% .10 244); background: oklch(92% .04 244); }}
+.evidence-confirmed {{ color: oklch(34% .11 155); background: oklch(91% .05 155); }}
+.evidence-legend {{ display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 12px; }}
 .assembly-head {{ display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }}
 .step-controls {{ display: flex; gap: 4px; }}
 .step-button {{ border-color: var(--line); min-width: 44px; padding-inline: 10px; }}
@@ -207,6 +251,9 @@ canvas.dragging {{ cursor: grabbing; }}
   .view-help {{ display: none; }}
   .facts {{ grid-template-columns: 1fr; }}
   .selection, .tab-panel {{ padding-inline: 16px; }}
+  .reference-slider input {{ width: 88px; }}
+  .reference-regions {{ left: 12px; right: 12px; bottom: 58px; }}
+  .reference-note {{ top: 62px; left: 18px; right: 18px; max-width: none; }}
 }}
 @media (prefers-reduced-motion: reduce) {{ *,*::before,*::after {{ transition-duration: .01ms !important; animation-duration: .01ms !important; }} }}
 </style>
@@ -235,11 +282,20 @@ canvas.dragging {{ cursor: grabbing; }}
       <label class="toggle"><input id="show-hardware" type="checkbox" checked>五金</label>
       <label class="toggle"><input id="show-dimensions" type="checkbox" checked>尺寸</label>
     </div>
+    <div class="reference-tools" id="reference-tools" role="group" aria-label="参考图校对" hidden>
+      <button class="tool-button" id="reference-review-toggle" aria-pressed="false">参考图校对</button>
+      <label class="reference-slider" id="reference-opacity-control" hidden>原图
+        <input id="reference-opacity" type="range" min="0" max="100" value="48" aria-label="参考图透明度">
+      </label>
+    </div>
     <button class="tool-button" id="reset-view">复位视角</button>
   </nav>
   <section class="workspace">
     <section class="viewer" id="model" aria-label="可旋转的铝型材结构模型">
       <canvas id="canvas" tabindex="0" aria-label="拖动旋转，滚轮缩放，点击型材或五金查看参数"></canvas>
+      <div class="reference-layer" id="reference-layer" hidden><img id="reference-image" alt=""></div>
+      <div class="reference-regions" id="reference-regions" hidden></div>
+      <div class="reference-note" id="reference-note" hidden>透明叠加只用于核对左右、分区和连续横梁，不用于从像素读取尺寸。</div>
       <div class="dimensions" id="dimensions"></div>
       <p class="view-help">拖动旋转 · 滚轮缩放 · 点击型材或五金查看参数 · 方向键微调</p>
     </section>
@@ -274,6 +330,8 @@ const ctx = canvas.getContext('2d');
 const state = {{ yaw:-Math.PI/4, pitch:Math.PI/7, zoom:1, selected:null, hoverIds:new Set(), dragging:false, last:null, dragDistance:0, renderMode:'realistic', showPanels:true, showHardware:true, showDimensions:true, step:0, hit:[] }};
 const presets = {{ iso:[-Math.PI/4,Math.PI/7], front:[0,0], side:[-Math.PI/2,0], top:[0,Math.PI/2] }};
 const roleNames = {{post:'立柱','level beam':'层横梁','side beam':'侧横梁'}};
+const evidenceNames = {{visible:'原图可见',inferred:'结构推测',confirmed:'用户确认'}};
+const confidenceNames = {{high:'高',medium:'中',low:'低'}};
 const allPoints = members.flatMap(m => [m.start,m.end]);
 const bounds = [0,1,2].map(i => [Math.min(...allPoints.map(p=>p[i])),Math.max(...allPoints.map(p=>p[i]))]);
 const center = bounds.map(([a,b]) => (a+b)/2);
@@ -477,6 +535,7 @@ function renderSelection() {{
   const root=document.getElementById('selection'), m=members.find(x=>x.id===state.selected);
   if (!m) {{ root.innerHTML='<p class="selection-kicker">当前选择</p><h2>检查结构</h2><p class="selection-empty">点击模型中的型材，查看长度、规格和连接信息。</p>'; return; }}
   const p=profiles[m.profile_id]||{{}}, connected=(design.joints||[]).filter(j=>j.member_ids?.includes(m.id));
+  const evidence=evidenceNames[m.evidence_basis]||'未标注';
   root.innerHTML=`<p class="selection-kicker">当前构件</p><h2>${{m.id}}</h2><dl class="facts">
     <div class="fact"><dt>目录编号</dt><dd>${{p.catalog_id||'未绑定'}}</dd></div>
     <div class="fact"><dt>型材</dt><dd>${{p.part_number||`${{p.width_mm||''}}${{p.height_mm||''}}`}}</dd></div>
@@ -484,11 +543,16 @@ function renderSelection() {{
     <div class="fact"><dt>用途</dt><dd>${{roleNames[m.role]||m.role||'构件'}}</dd></div>
     <div class="fact"><dt>相连节点</dt><dd>${{connected.length}}</dd></div>
     <div class="fact"><dt>加工</dt><dd>${{m.machining_status==='not_required'?'无需加工':m.machining_status==='specified'?'已说明':'待确认'}}</dd></div>
+    <div class="fact"><dt>识别依据</dt><dd>${{evidence}}</dd></div>
+    <div class="fact"><dt>置信度</dt><dd>${{confidenceNames[m.evidence_confidence]||m.evidence_confidence||'未标注'}}</dd></div>
+    ${{m.evidence_note?`<div class="fact" style="grid-column:1/-1"><dt>依据说明</dt><dd>${{m.evidence_note}}</dd></div>`:''}}
   </dl>`;
 }}
 function renderMembers() {{
   const root=document.getElementById('members-panel');
-  root.innerHTML='<p class="section-title">全部构件</p><div class="member-list">'+members.map(m=>`<button class="list-row ${{state.selected===m.id?'active':''}}" data-member="${{m.id}}"><span class="list-main"><span class="list-name">${{m.id}}</span><span class="list-sub">${{roleNames[m.role]||m.role||'构件'}} · ${{profiles[m.profile_id]?.catalog_id||m.profile_id}}</span></span><span class="list-value">${{memberLength(m)}} mm</span></button>`).join('')+'</div>';
+  const badge=m=>m.evidence_basis&&evidenceNames[m.evidence_basis]?`<span class="evidence-badge evidence-${{m.evidence_basis}}">${{evidenceNames[m.evidence_basis]}}</span>`:'';
+  const legend=design.reference_image?'<div class="evidence-legend"><span class="evidence-badge evidence-visible">原图可见</span><span class="evidence-badge evidence-inferred">结构推测</span><span class="evidence-badge evidence-confirmed">用户确认</span></div>':'';
+  root.innerHTML='<p class="section-title">全部构件</p>'+legend+'<div class="member-list">'+members.map(m=>`<button class="list-row ${{state.selected===m.id?'active':''}}" data-member="${{m.id}}"><span class="list-main"><span class="list-name">${{m.id}}${{badge(m)}}</span><span class="list-sub">${{roleNames[m.role]||m.role||'构件'}} · ${{profiles[m.profile_id]?.catalog_id||m.profile_id}}</span></span><span class="list-value">${{memberLength(m)}} mm</span></button>`).join('')+'</div>';
   root.querySelectorAll('[data-member]').forEach(b=>{{b.onclick=()=>selectMember(b.dataset.member);b.onmouseenter=()=>{{state.hoverIds=new Set([b.dataset.member]);draw();}};b.onmouseleave=()=>{{state.hoverIds.clear();draw();}};}});
 }}
 function renderBom() {{
@@ -548,6 +612,7 @@ renderSelection();renderMembers();renderBom();renderAssembly();renderIssues();dr
 </script>
 <script>{three_runtime}</script>
 <script>{viewer_runtime}</script>
+<script>{reference_review_runtime}</script>
 </body>
 </html>'''
 
@@ -559,7 +624,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         data = json.loads(args.design.read_text(encoding="utf-8"))
-        document = html_document(_payload(data))
+        document = html_document(_payload(data, args.design.resolve().parent))
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(document, encoding="utf-8")
         print(args.output)

@@ -20,6 +20,8 @@
   };
   const memberMap = Object.fromEntries(members.map((member) => [member.id, member]));
   const roleNames = { post: '立柱', 'level beam': '层横梁', 'side beam': '侧横梁' };
+  const evidenceNames = { visible: '原图可见', inferred: '结构推测', confirmed: '用户确认' };
+  const confidenceNames = { high: '高', medium: '中', low: '低' };
   const allPoints = members.flatMap((member) => [member.start, member.end]);
   const bounds = [0, 1, 2].map((axis) => [
     Math.min(...allPoints.map((point) => point[axis])),
@@ -68,6 +70,7 @@
     showPanels: true,
     showHardware: true,
     showDimensions: true,
+    referenceReview: false,
     step: 0,
     needsRender: true,
   };
@@ -160,6 +163,19 @@
         metalness: 0.68,
         roughness: 0.24,
         clearcoat: 0.35,
+      }),
+      evidenceInferred: new THREE.MeshPhysicalMaterial({
+        color: 0x5696bd,
+        metalness: 0.38,
+        roughness: 0.45,
+        transparent: true,
+        opacity: 0.34,
+      }),
+      evidenceConfirmed: new THREE.MeshPhysicalMaterial({
+        color: 0xe2a24f,
+        metalness: 0.56,
+        roughness: 0.32,
+        clearcoat: 0.2,
       }),
       structurePost: new THREE.MeshStandardMaterial({ color: 0x4c6478, metalness: 0.18, roughness: 0.56 }),
       structureBeam: new THREE.MeshStandardMaterial({ color: 0x2c86bd, metalness: 0.16, roughness: 0.52 }),
@@ -864,6 +880,8 @@
       const dimmed = state.step > 0 && state.step < 4 && !currentStepKind(member);
       if (highlighted) mesh.material = materials.selected;
       else if (dimmed) mesh.material = materials.aluminumDim;
+      else if (state.referenceReview && member.evidence_basis === 'inferred') mesh.material = materials.evidenceInferred;
+      else if (state.referenceReview && member.evidence_basis === 'confirmed') mesh.material = materials.evidenceConfirmed;
       else if (state.renderMode === 'structure') mesh.material = (member.role || '').toLowerCase().includes('post') ? materials.structurePost : materials.structureBeam;
       else mesh.material = materials.aluminum;
       edges.material = state.renderMode === 'realistic' ? materials.edge : materials.edgeLight;
@@ -930,6 +948,7 @@
     }
     const profile = profiles[member.profile_id] || {};
     const connected = (design.joints || []).filter((joint) => joint.member_ids?.includes(member.id));
+    const evidence = evidenceNames[member.evidence_basis] || '未标注';
     root.innerHTML = `<p class="selection-kicker">当前构件</p><h2>${member.id}</h2><dl class="facts">
       <div class="fact"><dt>目录编号</dt><dd>${profile.catalog_id || '未绑定'}</dd></div>
       <div class="fact"><dt>型材</dt><dd>${profile.part_number || `${profile.width_mm || ''}${profile.height_mm || ''}`}</dd></div>
@@ -937,6 +956,9 @@
       <div class="fact"><dt>用途</dt><dd>${roleNames[member.role] || member.role || '构件'}</dd></div>
       <div class="fact"><dt>相连节点</dt><dd>${connected.length}</dd></div>
       <div class="fact"><dt>加工</dt><dd>${member.machining_status === 'not_required' ? '无需加工' : member.machining_status === 'specified' ? '已说明' : '待确认'}</dd></div>
+      <div class="fact"><dt>识别依据</dt><dd>${evidence}</dd></div>
+      <div class="fact"><dt>置信度</dt><dd>${confidenceNames[member.evidence_confidence] || member.evidence_confidence || '未标注'}</dd></div>
+      ${member.evidence_note ? `<div class="fact" style="grid-column:1/-1"><dt>依据说明</dt><dd>${member.evidence_note}</dd></div>` : ''}
     </dl>`;
   }
 
@@ -968,7 +990,10 @@
 
   function renderMembers() {
     const root = document.getElementById('members-panel');
-    root.innerHTML = '<p class="section-title">全部构件</p><div class="member-list">' + members.map((member) => `<button class="list-row ${state.selected === member.id ? 'active' : ''}" data-member="${member.id}"><span class="list-main"><span class="list-name">${member.id}</span><span class="list-sub">${roleNames[member.role] || member.role || '构件'} · ${profiles[member.profile_id]?.catalog_id || member.profile_id}</span></span><span class="list-value">${memberLength(member)} mm</span></button>`).join('') + '</div>';
+    const badge = (member) => member.evidence_basis && evidenceNames[member.evidence_basis]
+      ? `<span class="evidence-badge evidence-${member.evidence_basis}">${evidenceNames[member.evidence_basis]}</span>` : '';
+    const legend = design.reference_image ? `<div class="evidence-legend"><span class="evidence-badge evidence-visible">原图可见</span><span class="evidence-badge evidence-inferred">结构推测</span><span class="evidence-badge evidence-confirmed">用户确认</span></div>` : '';
+    root.innerHTML = '<p class="section-title">全部构件</p>' + legend + '<div class="member-list">' + members.map((member) => `<button class="list-row ${state.selected === member.id ? 'active' : ''}" data-member="${member.id}"><span class="list-main"><span class="list-name">${member.id}${badge(member)}</span><span class="list-sub">${roleNames[member.role] || member.role || '构件'} · ${profiles[member.profile_id]?.catalog_id || member.profile_id}</span></span><span class="list-value">${memberLength(member)} mm</span></button>`).join('') + '</div>';
     root.querySelectorAll('[data-member]').forEach((button) => {
       button.onclick = () => selectMember(button.dataset.member);
       button.onmouseenter = () => { state.hoverIds = new Set([button.dataset.member]); applyAppearance(); };
@@ -1094,6 +1119,10 @@
       document.getElementById('dimensions').hidden = !event.target.checked;
       applyAppearance();
     };
+    window.addEventListener('ray-reference-review', (event) => {
+      state.referenceReview = Boolean(event.detail?.active);
+      applyAppearance();
+    });
     canvas.addEventListener('pointerdown', (event) => {
       state.dragging = true;
       state.last = [event.clientX, event.clientY];

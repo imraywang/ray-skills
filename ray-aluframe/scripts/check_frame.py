@@ -431,6 +431,27 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
                 if not passed:
                     blockers.append(f"参考图拓扑不符: {label}应为 {expected_rows} 格，模型为 {actual_rows} 格")
 
+    evidence_summary: Counter[str] = Counter()
+    if data.get("reference_image"):
+        if not reference_topology:
+            blockers.append("已提供参考图但没有 reference_topology，无法核对可见分区")
+        allowed_basis = {"visible", "inferred", "confirmed"}
+        allowed_confidence = {"high", "medium", "low"}
+        evidence_items = [("构件", item) for item in members.values()]
+        evidence_items.extend(("外观项", item) for item in data.get("visuals", []))
+        for kind, item in evidence_items:
+            item_id = str(item.get("id") or item.get("type") or "未命名")
+            basis = item.get("evidence_basis")
+            confidence = item.get("evidence_confidence")
+            if basis not in allowed_basis:
+                blockers.append(f"{kind} {item_id}: 未标明原图可见、结构推测或用户确认")
+                continue
+            evidence_summary[str(basis)] += 1
+            if confidence not in allowed_confidence:
+                blockers.append(f"{kind} {item_id}: 识别置信度未按 high/medium/low 标明")
+            if basis == "inferred" and is_tbd(item.get("evidence_note")):
+                warnings.append(f"{kind} {item_id}: 结构推测缺少依据说明")
+
     for pid, profile in profiles.items():
         required = ("catalog_id", "stock_length_mm")
         missing = [key for key in required if is_tbd(profile.get(key))]
@@ -530,6 +551,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
         "beam_results": beam_results,
         "machining_rows": machining_rows,
         "topology_results": topology_results,
+        "evidence_summary": evidence_summary,
     }
 
 
@@ -562,6 +584,19 @@ def markdown(data: dict[str, Any], result: dict[str, Any]) -> str:
                 f"| {item['label']} | {item['expected_rows']} 格 | {item['actual_rows']} 格 | {item['confidence']} | {item['status']} |"
             )
         lines.append("")
+
+    if data.get("reference_image"):
+        evidence = result["evidence_summary"]
+        lines += [
+            "## 参考图识别依据",
+            "",
+            f"- 原图可见: {evidence.get('visible', 0)} 项",
+            f"- 结构推测: {evidence.get('inferred', 0)} 项",
+            f"- 用户确认: {evidence.get('confirmed', 0)} 项",
+            "",
+            "结构推测项不能仅凭预览图视为已确认，进入制作前仍需尺寸或多角度照片复核。",
+            "",
+        ]
 
     lines += ["## 横梁初查", "", "| 载荷 | 构件 | 变形 mm | 筛查值 mm | 结果 | 强度 |", "|---|---|---:|---:|---|---|"]
     if result["beam_results"]:
