@@ -2,14 +2,14 @@
   "schema_version": 1,
   "catalog_name": "Ray Aluframe Product Catalog",
   "catalog_owner": "Ray Skills",
-  "catalog_version": "2026.07.15-2",
+  "catalog_version": "2026.07.15-3",
   "built_on": "2026-07-15",
   "runtime_policy": "self_contained_no_external_lookup",
   "coverage": {
     "systems": 3,
     "profiles_and_shafts": 202,
     "engineering_reference_profiles": 7,
-    "standard_products": 19,
+    "standard_products": 25,
     "complete_kits": 12,
     "supplier_profiles": 59
   },
@@ -5019,6 +5019,69 @@
         3,
         10
       ]
+    },
+    {
+      "id": "RAF-D-HINGE-40X40",
+      "kind": "door_hardware",
+      "name": "40×40 mm 表装合页",
+      "width_mm": 40,
+      "height_mm": 40,
+      "leaf_thickness_mm": 4,
+      "hole_diameter_mm": 5.2,
+      "fastener": "M5×8 螺栓 + 槽6 M5后装螺母",
+      "data_status": "catalog_generic_geometry",
+      "purchase_note": "按门框槽系核对孔距和螺栓长度"
+    },
+    {
+      "id": "RAF-D-KNOB-25",
+      "kind": "door_hardware",
+      "name": "直径 25 mm 圆形门把手",
+      "diameter_mm": 25,
+      "projection_mm": 22,
+      "fastener": "M4 穿板螺钉 1 颗",
+      "data_status": "catalog_generic_geometry",
+      "purchase_note": "螺钉长度按门板和垫片总厚度选择"
+    },
+    {
+      "id": "RAF-D-MAGNET-45",
+      "kind": "door_hardware",
+      "name": "45 mm 柜门磁吸",
+      "length_mm": 45,
+      "width_mm": 15,
+      "height_mm": 13,
+      "fastener": "M4 槽螺母固定底座 + 门板吸片",
+      "data_status": "catalog_generic_geometry",
+      "purchase_note": "吸力和安装孔距随实际商品复核"
+    },
+    {
+      "id": "RAF-B-PC-FLUTED-5",
+      "kind": "panel_material",
+      "name": "5 mm 半透明长虹 PC 板",
+      "material": "polycarbonate",
+      "thickness_mm": 5,
+      "finish": "fluted_translucent",
+      "data_status": "catalog_material_spec",
+      "purchase_note": "按门板净尺寸开料，条纹方向保持竖向"
+    },
+    {
+      "id": "RAF-B-ACRYLIC-CLEAR-5",
+      "kind": "panel_material",
+      "name": "5 mm 透明亚克力板",
+      "material": "acrylic",
+      "thickness_mm": 5,
+      "finish": "clear",
+      "data_status": "catalog_material_spec",
+      "purchase_note": "钻孔和边缘加工需避免应力开裂"
+    },
+    {
+      "id": "RAF-B-PLYWOOD-9",
+      "kind": "panel_material",
+      "name": "9 mm 木质多层板",
+      "material": "plywood",
+      "thickness_mm": 9,
+      "finish": "unfinished",
+      "data_status": "catalog_material_spec",
+      "purchase_note": "封边和表面处理按使用环境确认"
     }
   ],
   "kits": [

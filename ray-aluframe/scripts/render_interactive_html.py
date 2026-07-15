@@ -147,9 +147,9 @@ def html_document(payload: dict[str, Any]) -> str:
 [hidden] {{ display: none !important; }}
 html, body {{ margin: 0; min-height: 100%; background: var(--paper); color: var(--ink); }}
 body {{ font-family: "Avenir Next", "Futura", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 16px; line-height: 1.5; }}
-button, input {{ font: inherit; }}
+button, input, select {{ font: inherit; }}
 button {{ color: inherit; }}
-button:focus-visible, input:focus-visible, canvas:focus-visible {{ outline: 3px solid var(--orange); outline-offset: 2px; }}
+button:focus-visible, input:focus-visible, select:focus-visible, canvas:focus-visible {{ outline: 3px solid var(--orange); outline-offset: 2px; }}
 .skip {{ position: fixed; left: 12px; top: -60px; z-index: 20; background: var(--ink); color: var(--surface); padding: 10px 14px; }}
 .skip:focus {{ top: 12px; }}
 .app {{ height: 100dvh; min-height: 640px; display: grid; grid-template-rows: auto auto minmax(0,1fr); }}
@@ -189,6 +189,22 @@ canvas.dragging {{ cursor: grabbing; }}
 .view-help {{ position: absolute; z-index: 4; left: 18px; bottom: 16px; margin: 0; color: var(--muted); font-size: .8rem; background: var(--surface); border: 1px solid var(--line); padding: 8px 11px; }}
 .dimensions {{ position: absolute; z-index: 4; top: 16px; left: 18px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 36px); pointer-events: none; }}
 .dimension {{ padding: 6px 9px; background: var(--surface); border: 1px solid var(--line); font-size: .78rem; font-variant-numeric: tabular-nums; box-shadow: 0 5px 18px oklch(29% .03 248 / .08); }}
+.dimension-editor {{ position: absolute; z-index: 8; top: 16px; right: 18px; width: min(360px,calc(100% - 36px)); max-height: calc(100% - 32px); overflow: auto; background: color-mix(in oklch,var(--surface) 97%,transparent); border: 1px solid var(--line); box-shadow: 0 18px 60px rgba(0,0,0,.28); }}
+.editor-head {{ display: flex; justify-content: space-between; gap: 14px; padding: 15px 16px 12px; border-bottom: 1px solid var(--line); }}
+.editor-head strong {{ display: block; }}
+.editor-head span {{ display: block; margin-top: 2px; color: var(--muted); font-size: .72rem; }}
+.editor-fields {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 16px; }}
+.editor-field {{ display: grid; gap: 5px; color: var(--muted); font-size: .72rem; font-weight: 750; }}
+.editor-input {{ display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 6px; }}
+.editor-input input {{ width: 100%; min-height: 40px; padding: 7px 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-variant-numeric: tabular-nums; }}
+.editor-input small {{ min-width: 24px; color: var(--muted); font-size: .68rem; }}
+.editor-foot {{ display: grid; gap: 9px; padding: 0 16px 15px; }}
+.editor-status {{ min-height: 34px; margin: 0; padding: 7px 9px; background: var(--paper); color: var(--muted); font-size: .72rem; }}
+.editor-status[data-state="error"] {{ background: color-mix(in oklch,var(--red) 10%,var(--surface)); color: var(--red); }}
+.editor-status[data-state="changed"] {{ background: color-mix(in oklch,var(--green) 10%,var(--surface)); color: oklch(39% .10 155); }}
+.editor-note {{ margin: 0; color: var(--muted); font-size: .68rem; }}
+.editor-reset {{ min-height: 38px; border: 1px solid var(--line); background: transparent; cursor: pointer; font-weight: 750; }}
+.bom-section {{ margin-top: 24px; }}
 .render-failure {{ position: absolute; z-index: 4; inset: 50% auto auto 50%; translate: -50% -50%; width: min(420px,calc(100% - 36px)); padding: 18px 20px; display: grid; gap: 6px; color: #fff; background: #762d20; border: 1px solid #ff9b72; box-shadow: 0 18px 60px rgba(0,0,0,.35); }}
 .render-failure span {{ color: #ffe3d8; font-size: .86rem; }}
 .inspector {{ min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr); background: var(--surface); border-left: 1px solid var(--line); }}
@@ -254,6 +270,8 @@ canvas.dragging {{ cursor: grabbing; }}
   .reference-slider input {{ width: 88px; }}
   .reference-regions {{ left: 12px; right: 12px; bottom: 58px; }}
   .reference-note {{ top: 62px; left: 18px; right: 18px; max-width: none; }}
+  .dimension-editor {{ top: 10px; right: 10px; width: calc(100% - 20px); }}
+  .editor-fields {{ grid-template-columns: 1fr; }}
 }}
 @media (prefers-reduced-motion: reduce) {{ *,*::before,*::after {{ transition-duration: .01ms !important; animation-duration: .01ms !important; }} }}
 </style>
@@ -288,6 +306,7 @@ canvas.dragging {{ cursor: grabbing; }}
         <input id="reference-opacity" type="range" min="0" max="100" value="48" aria-label="参考图透明度">
       </label>
     </div>
+    <button class="tool-button" id="edit-layout" aria-pressed="false">修改尺寸</button>
     <button class="tool-button" id="reset-view">复位视角</button>
   </nav>
   <section class="workspace">
@@ -297,6 +316,15 @@ canvas.dragging {{ cursor: grabbing; }}
       <div class="reference-regions" id="reference-regions" hidden></div>
       <div class="reference-note" id="reference-note" hidden>当前从柜门侧看向洞洞板；透明叠加只用于核对左右、分区和连续横梁，不用于从像素读取尺寸。</div>
       <div class="dimensions" id="dimensions"></div>
+      <section class="dimension-editor" id="dimension-editor" aria-label="修改结构尺寸" hidden>
+        <div class="editor-head"><div><strong>直接修改方案</strong><span>离开输入框或按回车后自动更新</span></div></div>
+        <div class="editor-fields"></div>
+        <div class="editor-foot">
+          <p class="editor-status">修改后会同步更新模型、主体下料、门框和门板尺寸。</p>
+          <p class="editor-note">页面修改不会覆盖原始设计文件；正式询价前仍需重新运行承载与稳定性检查。</p>
+          <button class="editor-reset" id="reset-layout" type="button">恢复原方案</button>
+        </div>
+      </section>
       <p class="view-help">拖动旋转 · 滚轮缩放 · 点击型材或五金查看参数 · 方向键微调</p>
     </section>
     <aside class="inspector" aria-label="结构信息">

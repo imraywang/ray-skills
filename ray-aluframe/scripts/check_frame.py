@@ -439,6 +439,7 @@ def validate(data: dict[str, Any]) -> dict[str, Any]:
         allowed_confidence = {"high", "medium", "low"}
         evidence_items = [("构件", item) for item in members.values()]
         evidence_items.extend(("外观项", item) for item in data.get("visuals", []))
+        evidence_items.extend(("门板", item) for item in data.get("doors", []))
         for kind, item in evidence_items:
             item_id = str(item.get("id") or item.get("type") or "未命名")
             basis = item.get("evidence_basis")

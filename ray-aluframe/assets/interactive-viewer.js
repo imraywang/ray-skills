@@ -7,10 +7,12 @@
 
   const payload = JSON.parse(document.getElementById('payload').textContent);
   const design = payload.design;
+  const editState = applyEditableOverrides(design);
   const members = design.members || [];
   const accessories = design.accessories || [];
   const profiles = Object.fromEntries((design.profiles || []).map((profile) => [profile.id, profile]));
   const catalogProducts = Object.fromEntries((payload.catalog?.products || []).map((product) => [product.id, product]));
+  const catalogProfiles = Object.fromEntries((payload.catalog?.profiles || []).map((profile) => [profile.id, profile]));
   const defaultAngleSpec = catalogProducts['RAF-C-ANGLE-30-8'] || {
     width_mm: 30,
     arm_a_mm: 50,
@@ -23,6 +25,9 @@
   const evidenceNames = { visible: '原图可见', inferred: '结构推测', confirmed: '用户确认' };
   const confidenceNames = { high: '高', medium: '中', low: '低' };
   const allPoints = members.flatMap((member) => [member.start, member.end]);
+  if (editState.enabled) {
+    allPoints.push([0, 0, 0], [editState.values.width_mm, editState.values.depth_mm, editState.values.height_mm]);
+  }
   const bounds = [0, 1, 2].map((axis) => [
     Math.min(...allPoints.map((point) => point[axis])),
     Math.max(...allPoints.map((point) => point[axis])),
@@ -104,7 +109,7 @@
     { name: '第 2 步 · 立柱', copy: '安装立柱，先临时拧紧，确认垂直。' },
     { name: '第 3 步 · 各层横梁', copy: '从下往上安装横梁，每层再次核对对角线。' },
     { name: '第 4 步 · 层板与背板', copy: '安装层板、背板和展示板，确认边缘固定点。' },
-    { name: '第 5 步 · 五金与复紧', copy: '安装底脚与剩余五金，空载复紧后逐步加载。' },
+    { name: '第 5 步 · 门板与复紧', copy: '安装门框、门板、合页、把手和磁吸；逐扇调缝后空载复紧。' },
   ];
 
   setupLighting();
@@ -126,6 +131,225 @@
     setupControls();
   } catch (error) {
     console.error('Preview controls failed to initialize', error);
+  }
+
+  function clamp(value, minimum, maximum) {
+    return Math.min(maximum, Math.max(minimum, value));
+  }
+
+  function applyEditableOverrides(targetDesign) {
+    const editable = targetDesign.editable;
+    if (!editable?.enabled || editable.layout !== 'split_cabinet_v1') {
+      return { enabled: false, changed: false, values: {} };
+    }
+    const defaults = Object.fromEntries((editable.fields || []).map((field) => [field.id, Number(field.value)]));
+    let overrides = {};
+    try {
+      const raw = new URLSearchParams(window.location.search).get('ray-edit')
+        || new URLSearchParams(window.location.hash.slice(1)).get('ray-edit');
+      if (raw) overrides = JSON.parse(raw);
+    } catch (error) {
+      console.warn('Ignored invalid preview edit values', error);
+    }
+    const changed = Object.keys(overrides).length > 0;
+    const values = { ...defaults };
+    (editable.fields || []).forEach((field) => {
+      const candidate = Number(overrides[field.id]);
+      if (!Number.isFinite(candidate)) return;
+      values[field.id] = clamp(candidate, Number(field.min), Number(field.max));
+      if (Number(field.step) === 1) values[field.id] = Math.round(values[field.id]);
+    });
+    if (!changed) {
+      if (!targetDesign.doors?.length) materializeDoors(targetDesign, values, editable.anchors || {});
+      return { enabled: true, changed: false, values, defaults };
+    }
+
+    const anchors = editable.anchors || {};
+    const oldWidth = Number(defaults.width_mm);
+    const oldDepth = Number(defaults.depth_mm);
+    const oldHeight = Number(anchors.overall_height_mm || defaults.height_mm);
+    const oldDivider = Number(anchors.divider_x_mm || defaults.divider_mm);
+    const baseZ = Number(anchors.base_z_mm || 0);
+    const oldCabinetTop = Number(anchors.cabinet_top_z_mm || oldHeight * 0.48);
+    const rightMinimum = Number(editable.minimum_right_bay_mm || 250);
+    const upperMinimum = Number(editable.minimum_upper_zone_mm || 250);
+    values.divider_mm = clamp(values.divider_mm, 250, values.width_mm - rightMinimum);
+    values.level_count = clamp(Math.round(values.level_count), 1, 8);
+    const maximumLayerHeight = Math.max(120, (values.height_mm - upperMinimum - baseZ) / values.level_count);
+    values.level_height_mm = clamp(values.level_height_mm, 120, maximumLayerHeight);
+    const newCabinetTop = baseZ + values.level_count * values.level_height_mm;
+
+    const mapX = (x) => {
+      if (x < 0) return x;
+      if (x <= oldDivider) return oldDivider ? x / oldDivider * values.divider_mm : x;
+      const oldRight = oldWidth - oldDivider;
+      return values.divider_mm + (oldRight ? (x - oldDivider) / oldRight * (values.width_mm - values.divider_mm) : 0);
+    };
+    const mapY = (y) => y < 0 ? y : oldDepth ? y / oldDepth * values.depth_mm : y;
+    const mapZ = (z) => {
+      if (z <= baseZ) return z;
+      if (z <= oldCabinetTop) {
+        const ratio = (z - baseZ) / Math.max(1, oldCabinetTop - baseZ);
+        return baseZ + ratio * (newCabinetTop - baseZ);
+      }
+      const ratio = (z - oldCabinetTop) / Math.max(1, oldHeight - oldCabinetTop);
+      return newCabinetTop + ratio * (values.height_mm - newCabinetTop);
+    };
+    const mapPoint = (point) => [mapX(Number(point[0])), mapY(Number(point[1])), mapZ(Number(point[2]))];
+
+    targetDesign.members = (targetDesign.members || [])
+      .filter((member) => member.editable_group !== editable.dynamic_member_group)
+      .map((member) => ({ ...member, start: mapPoint(member.start), end: mapPoint(member.end) }));
+    for (let index = 1; index < values.level_count; index += 1) {
+      const z = baseZ + index * values.level_height_mm;
+      [[0, 'F'], [values.depth_mm, 'R']].forEach(([y, side]) => {
+        targetDesign.members.push(editableLayerMember(`EDIT-L${index}-${side}-LEFT`, '左柜层横梁', [0, y, z], [values.divider_mm, y, z], editable));
+      });
+      [[0, 'L'], [values.divider_mm, 'D']].forEach(([x, side]) => {
+        targetDesign.members.push(editableLayerMember(`EDIT-L${index}-SIDE-${side}`, '左柜侧横梁', [x, 0, z], [x, values.depth_mm, z], editable));
+      });
+    }
+    targetDesign.visuals = (targetDesign.visuals || []).map((visual) => {
+      const next = { ...visual };
+      if (visual.corners) next.corners = visual.corners.map(mapPoint);
+      if (visual.at) next.at = mapPoint(visual.at);
+      return next;
+    });
+    targetDesign.ground_points = (targetDesign.ground_points || []).map(mapPoint);
+    if (targetDesign.reference_topology?.regions) {
+      targetDesign.reference_topology.regions = targetDesign.reference_topology.regions.map((region) => ({
+        ...region,
+        x_range_mm: [mapX(region.x_range_mm[0]), mapX(region.x_range_mm[1])],
+        z_range_mm: [mapZ(region.z_range_mm[0]), mapZ(region.z_range_mm[1])],
+        expected_rows: region.id === 'LOWER-LEFT' ? values.level_count : region.expected_rows,
+      }));
+    }
+    targetDesign.joints = makeEditableJoints(targetDesign.members);
+    materializeDoors(targetDesign, values, { ...anchors, cabinet_top_z_mm: newCabinetTop });
+    updateEditableAccessories(targetDesign, values);
+    updateDoorAccessories(targetDesign);
+    const originalName = String(targetDesign.project?.name || '铝型材方案');
+    const updatedName = originalName.replace(/\d+\s*[×x]\s*\d+\s*[×x]\s*\d+/, `${Math.round(values.width_mm)}×${Math.round(values.depth_mm)}×${Math.round(values.height_mm)}`);
+    targetDesign.project = { ...targetDesign.project, name: updatedName, revision: `${targetDesign.project?.revision || 'A'} · 页面修改` };
+    return { enabled: true, changed: true, values, defaults, cabinetTop: newCabinetTop };
+  }
+
+  function editableLayerMember(id, role, start, end, editable) {
+    return {
+      id,
+      profile_id: editable.profile_id,
+      role,
+      start,
+      end,
+      editable_group: editable.dynamic_member_group,
+      machining_status: 'specified',
+      machining: [{ location: '随页面尺寸重算', operation: '连接方式沿用原方案，询价前复核' }],
+      evidence_basis: 'confirmed',
+      evidence_confidence: 'high',
+      evidence_note: '由用户在预览页设置的层数和层高生成。',
+    };
+  }
+
+  function pointOnMember(point, member) {
+    return point.every((value, axis) => value >= Math.min(member.start[axis], member.end[axis]) - 0.01
+      && value <= Math.max(member.start[axis], member.end[axis]) + 0.01)
+      && point.every((value, axis) => member.start[axis] !== member.end[axis] || Math.abs(value - member.start[axis]) < 0.01);
+  }
+
+  function makeEditableJoints(currentMembers) {
+    const points = new Map();
+    currentMembers.forEach((member) => [member.start, member.end].forEach((point) => points.set(point.map((value) => Number(value.toFixed(4))).join('|'), point)));
+    return [...points.values()].sort((a, b) => a[2] - b[2] || a[1] - b[1] || a[0] - b[0]).flatMap((point, index) => {
+      const memberIds = currentMembers.filter((member) => pointOnMember(point, member)).map((member) => member.id);
+      if (memberIds.length < 2) return [];
+      return [{
+        id: `EDIT-J${String(index + 1).padStart(2, '0')}`,
+        at: point,
+        member_ids: memberIds,
+        connector: { description: '直角节点连接件，随页面尺寸重算', qty: Math.max(1, memberIds.length - 1) },
+      }];
+    });
+  }
+
+  function materializeDoors(targetDesign, values, anchors) {
+    const system = targetDesign.door_system;
+    if (!system) return;
+    const baseZ = Number(anchors.base_z_mm || 0);
+    const cabinetTop = Number(anchors.cabinet_top_z_mm || baseZ + values.level_count * values.level_height_mm);
+    const common = {
+      front_y_mm: Number(system.front_y_mm ?? -10),
+      gap_mm: Number(system.gap_mm || 4),
+      frame_profile_catalog_id: system.frame_profile_catalog_id,
+      frame_profile_mm: Number(system.frame_profile_mm || 20),
+      panel_catalog_id: system.panel_catalog_id,
+      panel_thickness_mm: Number(system.panel_thickness_mm || 5),
+      hinge_catalog_id: system.hinge_catalog_id,
+      handle_catalog_id: system.handle_catalog_id,
+      catch_catalog_id: system.catch_catalog_id,
+      evidence_basis: 'confirmed',
+      evidence_confidence: 'high',
+    };
+    const doors = [];
+    for (let index = 0; index < values.level_count; index += 1) {
+      const z0 = baseZ + index * values.level_height_mm;
+      const z1 = index === values.level_count - 1 ? cabinetTop : baseZ + (index + 1) * values.level_height_mm;
+      doors.push({
+        ...common,
+        id: `DOOR-LEFT-${index + 1}`,
+        label: `左侧第 ${index + 1} 层下翻门`,
+        bounds: [0, values.divider_mm, z0, z1],
+        opening: system.left_opening || 'drop_down',
+        hinge_edge: system.left_hinge_edge || 'bottom',
+        hinge_qty: Number(system.left_hinge_qty || 2),
+        handle_position: 'top_center',
+        catch_position: 'top_center',
+        evidence_note: '参考图显示为横向分块门；开启方向按把手在上、合页在下的下翻门表达。',
+      });
+    }
+    doors.push({
+      ...common,
+      id: 'DOOR-RIGHT',
+      label: '右侧通高侧开门',
+      bounds: [values.divider_mm, values.width_mm, baseZ, cabinetTop],
+      opening: system.right_opening || 'side_hinged',
+      hinge_edge: system.right_hinge_edge || 'right',
+      hinge_qty: Number(system.right_hinge_qty || 3),
+      handle_position: 'left_center',
+      catch_position: 'left_center',
+      evidence_note: '参考图右边缘可见合页，按右侧铰接的通高侧开门表达。',
+    });
+    targetDesign.doors = doors;
+  }
+
+  function updateDoorAccessories(targetDesign) {
+    const doors = targetDesign.doors || [];
+    const counts = {
+      door_panel: doors.length,
+      door_hinge: doors.reduce((sum, door) => sum + Number(door.hinge_qty || 0), 0),
+      door_handle: doors.length,
+      door_catch: doors.length,
+    };
+    (targetDesign.accessories || []).forEach((accessory) => {
+      if (counts[accessory.category] !== undefined) accessory.qty = counts[accessory.category];
+    });
+  }
+
+  function updateEditableAccessories(targetDesign, values) {
+    const visualById = Object.fromEntries((targetDesign.visuals || []).map((visual) => [visual.id, visual]));
+    const panelSize = (visual) => {
+      if (!visual?.corners?.length) return null;
+      const axes = [0, 1, 2].map((axis) => {
+        const numbers = visual.corners.map((point) => Number(point[axis]));
+        return Math.round(Math.max(...numbers) - Math.min(...numbers));
+      });
+      return axes.filter((value) => value > 1).sort((a, b) => b - a);
+    };
+    const worktopSize = panelSize(visualById.WORKTOP) || [Math.round(values.width_mm), Math.round(values.depth_mm)];
+    const backingSize = panelSize(visualById.PEGBOARD);
+    (targetDesign.accessories || []).forEach((accessory) => {
+      if (accessory.category === 'worktop') accessory.description = `${worktopSize[0]}×${worktopSize[1]} mm 木质台面`;
+      if (accessory.category === 'backing' && backingSize) accessory.description = `${backingSize[0]}×${backingSize[1]} mm 木质洞洞板`;
+    });
   }
 
   function toWorld(point) {
@@ -475,6 +699,23 @@
     return texture;
   }
 
+  function makeFlutedTexture() {
+    const textureCanvas = document.createElement('canvas');
+    textureCanvas.width = textureCanvas.height = 128;
+    const context = textureCanvas.getContext('2d');
+    context.fillStyle = '#d7e1df';
+    context.fillRect(0, 0, 128, 128);
+    for (let x = 0; x < 128; x += 8) {
+      context.fillStyle = x % 16 === 0 ? 'rgba(255,255,255,.58)' : 'rgba(92,112,111,.16)';
+      context.fillRect(x, 0, 4, 128);
+    }
+    const texture = new THREE.CanvasTexture(textureCanvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(5, 2);
+    return texture;
+  }
+
   function buildPanels() {
     const wood = new THREE.MeshStandardMaterial({
       color: 0xd4c39a,
@@ -488,6 +729,30 @@
       roughness: 0.78,
       metalness: 0.03,
     });
+    const doorMaterials = {
+      'RAF-B-PC-FLUTED-5': new THREE.MeshPhysicalMaterial({
+        color: 0xdce6e2,
+        map: makeFlutedTexture(),
+        roughness: 0.3,
+        metalness: 0.02,
+        transparent: true,
+        opacity: 0.58,
+        transmission: 0.18,
+        thickness: 5,
+        side: THREE.DoubleSide,
+      }),
+      'RAF-B-ACRYLIC-CLEAR-5': new THREE.MeshPhysicalMaterial({
+        color: 0xe8f3f3,
+        roughness: 0.12,
+        metalness: 0,
+        transparent: true,
+        opacity: 0.34,
+        transmission: 0.5,
+        thickness: 5,
+        side: THREE.DoubleSide,
+      }),
+      'RAF-B-PLYWOOD-9': wood,
+    };
     (design.visuals || []).filter((visual) => visual.type === 'panel' && visual.corners?.length >= 3).forEach((panel) => {
       const axes = [0, 1, 2].map((axis) => {
         const values = panel.corners.map((point) => point[axis]);
@@ -503,6 +768,161 @@
       mesh.receiveShadow = true;
       panelRoot.add(mesh);
     });
+    (design.doors || []).forEach((door) => buildDoor(door, doorMaterials));
+  }
+
+  function doorGeometry(door) {
+    const [rawX0, rawX1, rawZ0, rawZ1] = door.bounds.map(Number);
+    const gap = Number(door.gap_mm || 4);
+    return {
+      x0: rawX0 + gap,
+      x1: rawX1 - gap,
+      z0: rawZ0 + gap,
+      z1: rawZ1 - gap,
+      y: Number(door.front_y_mm ?? -10),
+      frame: Number(door.frame_profile_mm || 20),
+      thickness: Number(door.panel_thickness_mm || 5),
+    };
+  }
+
+  function addDoorProfile(group, start, end, size) {
+    const a = toWorld(start);
+    const b = toWorld(end);
+    const direction = b.clone().sub(a);
+    const geometry = profileGeometry({ width_mm: size, height_mm: size }, direction.length());
+    const mesh = new THREE.Mesh(geometry, materials.aluminum);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction.clone().normalize());
+    mesh.position.copy(a).add(b).multiplyScalar(0.5);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry, 38), materials.edge);
+    edges.quaternion.copy(mesh.quaternion);
+    edges.position.copy(mesh.position);
+    group.add(edges);
+  }
+
+  function buildDoor(door, doorMaterials) {
+    const geometry = doorGeometry(door);
+    const width = Math.max(20, geometry.x1 - geometry.x0);
+    const height = Math.max(20, geometry.z1 - geometry.z0);
+    const frame = Math.min(geometry.frame, width / 4, height / 4);
+    const group = new THREE.Group();
+    addDoorProfile(group, [geometry.x0, geometry.y, geometry.z0], [geometry.x1, geometry.y, geometry.z0], frame);
+    addDoorProfile(group, [geometry.x0, geometry.y, geometry.z1], [geometry.x1, geometry.y, geometry.z1], frame);
+    addDoorProfile(group, [geometry.x0, geometry.y, geometry.z0 + frame], [geometry.x0, geometry.y, geometry.z1 - frame], frame);
+    addDoorProfile(group, [geometry.x1, geometry.y, geometry.z0 + frame], [geometry.x1, geometry.y, geometry.z1 - frame], frame);
+
+    const panelWidth = Math.max(10, width - frame * 2);
+    const panelHeight = Math.max(10, height - frame * 2);
+    const panelMaterial = doorMaterials[door.panel_catalog_id] || doorMaterials['RAF-B-PC-FLUTED-5'];
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(panelWidth, panelHeight, geometry.thickness), panelMaterial);
+    panel.position.set((geometry.x0 + geometry.x1) / 2, (geometry.z0 + geometry.z1) / 2, -geometry.y + 1);
+    panel.castShadow = true;
+    panel.receiveShadow = true;
+    group.add(panel);
+    panelRoot.add(group);
+    buildDoorHardware(door, geometry);
+  }
+
+  function doorHardwareInfo(door, suffix, catalogId, name, location, specification, fasteners) {
+    return {
+      id: `${suffix}-${door.id}`,
+      catalogId,
+      name,
+      location: `${door.label || door.id} · ${location}`,
+      quantity: 1,
+      specification,
+      fasteners,
+    };
+  }
+
+  function buildDoorHardware(door, geometry) {
+    const hingeSpec = catalogProducts[door.hinge_catalog_id] || {};
+    const handleSpec = catalogProducts[door.handle_catalog_id] || {};
+    const catchSpec = catalogProducts[door.catch_catalog_id] || {};
+    const hingeCount = Math.max(1, Number(door.hinge_qty || 2));
+    const hingeEdgeNames = { bottom: '下边', top: '上边', left: '左边', right: '右边' };
+    for (let index = 0; index < hingeCount; index += 1) {
+      const fraction = (index + 1) / (hingeCount + 1);
+      let x = geometry.x0 + fraction * (geometry.x1 - geometry.x0);
+      let z = geometry.z0;
+      if (door.hinge_edge === 'right' || door.hinge_edge === 'left') {
+        x = door.hinge_edge === 'right' ? geometry.x1 : geometry.x0;
+        z = geometry.z0 + fraction * (geometry.z1 - geometry.z0);
+      } else if (door.hinge_edge === 'top') {
+        z = geometry.z1;
+      }
+      const group = new THREE.Group();
+      const leafA = new THREE.Mesh(new THREE.BoxGeometry(36, 18, 4), materials.bracket);
+      const leafB = new THREE.Mesh(new THREE.BoxGeometry(36, 18, 4), materials.bracket);
+      if (door.hinge_edge === 'right' || door.hinge_edge === 'left') {
+        leafA.geometry = new THREE.BoxGeometry(18, 36, 4);
+        leafB.geometry = new THREE.BoxGeometry(18, 36, 4);
+        leafA.position.x = -9;
+        leafB.position.x = 9;
+      } else {
+        leafA.position.y = -9;
+        leafB.position.y = 9;
+      }
+      const pin = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 42, 16), materials.bolt);
+      if (door.hinge_edge === 'bottom' || door.hinge_edge === 'top') pin.rotation.z = Math.PI / 2;
+      const parts = [leafA, leafB, pin];
+      parts.forEach((part) => { part.castShadow = true; part.receiveShadow = true; });
+      const hitbox = new THREE.Mesh(new THREE.BoxGeometry(48, 48, 18), materials.pick);
+      group.add(...parts, hitbox);
+      group.position.set(x, z, -geometry.y + 13);
+      registerHardware([...parts, hitbox], {
+        ...doorHardwareInfo(
+          door,
+          `HINGE-${index + 1}`,
+          door.hinge_catalog_id,
+          hingeSpec.name || '表装合页',
+          `${hingeEdgeNames[door.hinge_edge] || door.hinge_edge}合页 ${index + 1}`,
+          `${hingeSpec.width_mm || 40}×${hingeSpec.height_mm || 40} mm · 叶片厚 ${hingeSpec.leaf_thickness_mm || 4} mm`,
+          hingeSpec.fastener || '按门框槽系配套螺栓和槽螺母',
+        ),
+        id: `HINGE-${door.id}-${index + 1}`,
+      });
+      hardwareRoot.add(group);
+    }
+
+    const handleX = door.handle_position?.startsWith('left') ? geometry.x0 + 42 : door.handle_position?.startsWith('right') ? geometry.x1 - 42 : (geometry.x0 + geometry.x1) / 2;
+    const handleZ = door.handle_position?.startsWith('top') ? geometry.z1 - 42 : (geometry.z0 + geometry.z1) / 2;
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry((handleSpec.diameter_mm || 25) / 2, (handleSpec.diameter_mm || 25) / 2, handleSpec.projection_mm || 22, 28), materials.bracket);
+    handle.rotation.x = Math.PI / 2;
+    handle.position.set(handleX, handleZ, -geometry.y + 25);
+    const handleHitbox = new THREE.Mesh(new THREE.BoxGeometry(42, 42, 42), materials.pick);
+    handleHitbox.position.copy(handle.position);
+    registerHardware([handle, handleHitbox], doorHardwareInfo(
+      door,
+      'HANDLE',
+      door.handle_catalog_id,
+      handleSpec.name || '圆形门把手',
+      '门板把手',
+      `直径 ${handleSpec.diameter_mm || 25} mm · 高 ${handleSpec.projection_mm || 22} mm`,
+      handleSpec.fastener || 'M4 穿板螺钉',
+    ));
+    hardwareRoot.add(handle, handleHitbox);
+
+    const catchX = door.catch_position?.startsWith('left') ? geometry.x0 + 30 : door.catch_position?.startsWith('right') ? geometry.x1 - 30 : (geometry.x0 + geometry.x1) / 2;
+    const catchZ = door.catch_position?.startsWith('top') ? geometry.z1 - 18 : (geometry.z0 + geometry.z1) / 2;
+    const catchBody = new THREE.Mesh(new THREE.BoxGeometry(catchSpec.length_mm || 45, catchSpec.height_mm || 13, catchSpec.width_mm || 15), materials.foot);
+    catchBody.position.set(catchX, catchZ, -geometry.y - 12);
+    const catchPlate = new THREE.Mesh(new THREE.BoxGeometry(30, 12, 2), materials.bracket);
+    catchPlate.position.set(catchX, catchZ, -geometry.y + 5);
+    const catchHitbox = new THREE.Mesh(new THREE.BoxGeometry(56, 38, 38), materials.pick);
+    catchHitbox.position.set(catchX, catchZ, -geometry.y);
+    registerHardware([catchBody, catchPlate, catchHitbox], doorHardwareInfo(
+      door,
+      'CATCH',
+      door.catch_catalog_id,
+      catchSpec.name || '柜门磁吸',
+      '闭合位置',
+      `${catchSpec.length_mm || 45}×${catchSpec.width_mm || 15}×${catchSpec.height_mm || 13} mm`,
+      catchSpec.fastener || '底座固定件 + 门板吸片',
+    ));
+    hardwareRoot.add(catchBody, catchPlate, catchHitbox);
   }
 
   function horizontalConnections(joint) {
@@ -917,6 +1337,7 @@
     renderBom();
     renderAssembly();
     renderIssues();
+    setupEditor();
     applyAppearance();
   }
 
@@ -1045,9 +1466,17 @@
 
   function renderBom() {
     const root = document.getElementById('bom-panel');
-    root.innerHTML = '<p class="section-title">型材下料汇总</p><div class="bom-list">' + payload.bom.map((row, index) => `<button class="list-row" data-bom="${index}"><span class="list-main"><span class="list-name">${row.catalog_id} · ${row.designation}</span><span class="list-sub">${row.length_mm} mm</span></span><span class="list-value">× ${row.qty}</span></button>`).join('') + '</div>';
+    const bom = currentBomRows();
+    const doorRows = doorCutRows();
+    const doorFrameRows = doorRows.frame.map((row) => `<div class="list-row"><span class="list-main"><span class="list-name">${row.catalogId} · 门框型材</span><span class="list-sub">${row.length} mm · ${row.note}</span></span><span class="list-value">× ${row.qty}</span></div>`).join('');
+    const panelRows = doorRows.panels.map((row) => `<div class="list-row"><span class="list-main"><span class="list-name">${row.label}</span><span class="list-sub">${row.catalogId} · ${row.width}×${row.height}×${row.thickness} mm · ${row.opening} · 四周缝 ${row.gap} mm · 合页 ${row.hinges} 只</span></span><span class="list-value">× 1</span></div>`).join('');
+    const accessoryRows = (design.accessories || []).map((item) => `<div class="list-row"><span class="list-main"><span class="list-name">${item.description || item.category}</span><span class="list-sub">${item.catalog_id || item.catalog_kit_id || '按尺寸制作'}</span></span><span class="list-value">× ${item.qty || 0}</span></div>`).join('');
+    root.innerHTML = '<p class="section-title">主体型材下料</p><div class="bom-list">' + bom.map((row, index) => `<button class="list-row" data-bom="${index}"><span class="list-main"><span class="list-name">${row.catalog_id} · ${row.designation}</span><span class="list-sub">${row.length_mm} mm</span></span><span class="list-value">× ${row.qty}</span></button>`).join('') + '</div>'
+      + (doorFrameRows ? `<p class="section-title bom-section">门框型材下料</p><div class="bom-list">${doorFrameRows}</div>` : '')
+      + (panelRows ? `<p class="section-title bom-section">门板实际尺寸</p><div class="bom-list">${panelRows}</div>` : '')
+      + `<p class="section-title bom-section">附件与板材</p><div class="bom-list">${accessoryRows}</div>`;
     root.querySelectorAll('[data-bom]').forEach((button) => {
-      const ids = payload.bom[Number(button.dataset.bom)].member_ids;
+      const ids = bom[Number(button.dataset.bom)].member_ids;
       button.onmouseenter = () => { state.hoverIds = new Set(ids); applyAppearance(); };
       button.onmouseleave = () => { state.hoverIds.clear(); applyAppearance(); };
       button.onclick = () => {
@@ -1058,6 +1487,61 @@
         applyAppearance();
       };
     });
+  }
+
+  function currentBomRows() {
+    const groups = new Map();
+    members.forEach((member) => {
+      const length = memberLength(member);
+      const key = `${member.profile_id}|${length}`;
+      if (!groups.has(key)) groups.set(key, { profile_id: member.profile_id, length_mm: length, qty: 0, member_ids: [] });
+      const row = groups.get(key);
+      row.qty += 1;
+      row.member_ids.push(member.id);
+    });
+    return [...groups.values()].sort((a, b) => a.profile_id.localeCompare(b.profile_id) || a.length_mm - b.length_mm).map((row) => {
+      const profile = profiles[row.profile_id] || {};
+      return {
+        ...row,
+        catalog_id: profile.catalog_id || '未绑定',
+        designation: profile.part_number || profile.designation || `${profile.width_mm || ''}${profile.height_mm || ''}`,
+      };
+    });
+  }
+
+  function doorCutRows() {
+    const frameGroups = new Map();
+    const panels = [];
+    (design.doors || []).forEach((door) => {
+      const geometry = doorGeometry(door);
+      const frame = Number(door.frame_profile_mm || 20);
+      const width = Math.round(geometry.x1 - geometry.x0);
+      const height = Math.round(geometry.z1 - geometry.z0);
+      [
+        { length: width, qty: 2, note: `${door.label} 上下边` },
+        { length: Math.max(10, height - frame * 2), qty: 2, note: `${door.label} 左右边，直角拼接` },
+      ].forEach((entry) => {
+        const key = `${door.frame_profile_catalog_id}|${entry.length}`;
+        if (!frameGroups.has(key)) frameGroups.set(key, { catalogId: door.frame_profile_catalog_id, length: entry.length, qty: 0, notes: [] });
+        const row = frameGroups.get(key);
+        row.qty += entry.qty;
+        row.notes.push(entry.note);
+      });
+      panels.push({
+        label: door.label,
+        catalogId: door.panel_catalog_id,
+        width: Math.max(10, width - frame * 2),
+        height: Math.max(10, height - frame * 2),
+        thickness: Number(door.panel_thickness_mm || 5),
+        opening: door.opening === 'drop_down' ? '向下翻开' : door.hinge_edge === 'right' ? '右侧铰接' : '侧向开启',
+        gap: Number(door.gap_mm || 4),
+        hinges: Number(door.hinge_qty || 0),
+      });
+    });
+    return {
+      frame: [...frameGroups.values()].map((row) => ({ ...row, note: row.notes.join('；') })),
+      panels,
+    };
   }
 
   function renderAssembly() {
@@ -1071,7 +1555,75 @@
   function renderIssues() {
     const labels = { error: '错误', blocker: '必须确认', warning: '提醒' };
     const root = document.getElementById('issues-panel');
-    root.innerHTML = '<p class="section-title">方案检查</p><div class="issue-list">' + (payload.issues.length ? payload.issues.map((issue) => `<div class="issue ${issue.severity}"><span class="issue-label">${labels[issue.severity]}</span><p>${issue.text}</p></div>`).join('') : '<p class="empty">没有发现阻断项，可以继续准备询价。</p>') + '</div>';
+    const runtimeNotice = editState.changed ? [{ severity: 'warning', text: '页面已重算模型、下料和门板数量；承载、稳定性和最终采购规格需要导出设计后重新检查。' }] : [];
+    const issues = [...runtimeNotice, ...(payload.issues || [])];
+    root.innerHTML = '<p class="section-title">方案检查</p><div class="issue-list">' + (issues.length ? issues.map((issue) => `<div class="issue ${issue.severity}"><span class="issue-label">${labels[issue.severity]}</span><p>${issue.text}</p></div>`).join('') : '<p class="empty">没有发现阻断项，可以继续准备询价。</p>') + '</div>';
+  }
+
+  function setupEditor() {
+    const toggle = document.getElementById('edit-layout');
+    const editor = document.getElementById('dimension-editor');
+    if (!toggle || !editor || !editState.enabled) {
+      if (toggle) toggle.hidden = true;
+      return;
+    }
+    const fields = design.editable?.fields || [];
+    const values = editState.values;
+    editor.querySelector('.editor-fields').innerHTML = fields.map((field) => `<label class="editor-field"><span>${field.label}</span><span class="editor-input"><input type="number" data-edit-field="${field.id}" value="${Math.round(values[field.id] * 10) / 10}" min="${field.min}" max="${field.max}" step="${field.step}"><small>${field.unit || ''}</small></span></label>`).join('');
+    const status = editor.querySelector('.editor-status');
+    const validateValues = (next) => {
+      const rightBay = next.width_mm - next.divider_mm;
+      const cabinetTop = Number(design.editable.anchors.base_z_mm || 0) + next.level_count * next.level_height_mm;
+      if (rightBay < Number(design.editable.minimum_right_bay_mm || 250)) return `右侧净宽至少保留 ${design.editable.minimum_right_bay_mm || 250} mm`;
+      if (cabinetTop > next.height_mm - Number(design.editable.minimum_upper_zone_mm || 250)) return '层数与层高组合过高，上部区域不足';
+      return '';
+    };
+    const applyValues = (changedField) => {
+      const next = {};
+      editor.querySelectorAll('[data-edit-field]').forEach((input) => { next[input.dataset.editField] = Number(input.value); });
+      if (changedField === 'level_count') {
+        const base = Number(design.editable.anchors.base_z_mm || 0);
+        const currentTop = editState.cabinetTop || Number(design.editable.anchors.cabinet_top_z_mm);
+        next.level_height_mm = Math.max(120, Math.round((currentTop - base) / Math.max(1, next.level_count) / 5) * 5);
+        editor.querySelector('[data-edit-field="level_height_mm"]').value = next.level_height_mm;
+      }
+      const error = validateValues(next);
+      if (error) {
+        status.textContent = error;
+        status.dataset.state = 'error';
+        return;
+      }
+      status.textContent = '正在更新模型与清单…';
+      status.dataset.state = 'working';
+      const url = new URL(window.location.href);
+      url.hash = '';
+      url.searchParams.set('ray-edit', JSON.stringify(next));
+      window.location.assign(url.toString());
+    };
+    toggle.onclick = () => {
+      const open = editor.hidden;
+      editor.hidden = !open;
+      toggle.setAttribute('aria-pressed', open);
+      if (open) editor.querySelector('input')?.focus();
+    };
+    editor.querySelectorAll('[data-edit-field]').forEach((input) => {
+      input.onchange = () => applyValues(input.dataset.editField);
+      input.onkeydown = (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        applyValues(input.dataset.editField);
+      };
+    });
+    editor.querySelector('#reset-layout').onclick = () => {
+      const url = new URL(window.location.href);
+      url.hash = '';
+      url.searchParams.delete('ray-edit');
+      window.location.assign(url.toString());
+    };
+    if (editState.changed) {
+      status.textContent = '当前为页面修改版；模型、下料和门板清单已同步。';
+      status.dataset.state = 'changed';
+    }
   }
 
   function setTab(tab) {

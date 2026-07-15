@@ -10,7 +10,8 @@
 6. 附件与加工
 7. 参考图拓扑
 8. 外观可视化
-9. 就绪判定
+9. 可编辑尺寸与门板系统
+10. 就绪判定
 
 ## 1. 顶层结构
 
@@ -189,7 +190,71 @@
 
 调节脚使用 `{"type":"leveling_foot","at":[0,0,0],"stem_mm":35,"pad_diameter_mm":42}`。脚轮使用 `{"type":"caster","at":[0,0,80],"stem_mm":28,"wheel_diameter_mm":65,"wheel_width_mm":24}`。面板洞孔仅作效果时可加 `"pattern":"pegboard"`。`visuals` 中出现的物件仍必须在 `accessories` 中有对应采购项。
 
-## 9. 就绪判定
+## 9. 可编辑尺寸与门板系统
+
+需要用户在交互预览中直接改尺寸时,增加 `editable`。只有显式声明了可编辑规则的方案才显示修改入口,不要对任意结构做无依据的整体拉伸。首个支持布局是左右分区柜体:
+
+```json
+{
+  "editable": {
+    "enabled": true,
+    "layout": "split_cabinet_v1",
+    "fields": [
+      {"id":"width_mm","label":"总宽","unit":"mm","value":1200,"min":800,"max":2400,"step":10},
+      {"id":"depth_mm","label":"深度","unit":"mm","value":600,"min":300,"max":1000,"step":10},
+      {"id":"height_mm","label":"总高","unit":"mm","value":1900,"min":1200,"max":2600,"step":10},
+      {"id":"divider_mm","label":"左侧分隔宽","unit":"mm","value":780,"min":350,"max":900,"step":10},
+      {"id":"level_count","label":"左侧层数","unit":"层","value":3,"min":1,"max":6,"step":1},
+      {"id":"level_height_mm","label":"左侧层高","unit":"mm","value":273,"min":180,"max":500,"step":5}
+    ],
+    "anchors": {
+      "base_z_mm": 80,
+      "cabinet_top_z_mm": 900,
+      "overall_height_mm": 1900,
+      "front_y_mm": 0,
+      "rear_y_mm": 600,
+      "divider_x_mm": 780
+    },
+    "dynamic_member_group": "left_layers",
+    "profile_id": "P-MAIN",
+    "minimum_right_bay_mm": 300,
+    "minimum_upper_zone_mm": 300
+  }
+}
+```
+
+可变层横梁必须写 `editable_group`,页面重算时删除旧层位并按层数和层高重新生成。页面同时重算节点、主体下料、门框下料、门板开料和门五金数量;承载、稳定性和正式采购就绪状态仍需把修改后的数据重新交给检查脚本,不得在浏览器里伪装为已经复核。
+
+门板用独立的 `doors` 表达,不要继续把会开启的门当作普通固定面板:
+
+```json
+{
+  "id": "DOOR-RIGHT",
+  "label": "右侧通高侧开门",
+  "bounds": [780, 1200, 80, 900],
+  "front_y_mm": -10,
+  "gap_mm": 4,
+  "frame_profile_catalog_id": "RAF-P-2020",
+  "frame_profile_mm": 20,
+  "panel_catalog_id": "RAF-B-PC-FLUTED-5",
+  "panel_thickness_mm": 5,
+  "opening": "side_hinged",
+  "hinge_edge": "right",
+  "hinge_catalog_id": "RAF-D-HINGE-40X40",
+  "hinge_qty": 3,
+  "handle_catalog_id": "RAF-D-KNOB-25",
+  "handle_position": "left_center",
+  "catch_catalog_id": "RAF-D-MAGNET-45",
+  "catch_position": "left_center",
+  "evidence_basis": "confirmed",
+  "evidence_confidence": "high",
+  "evidence_note": "参考图右边缘可见合页"
+}
+```
+
+`bounds` 依次为正视图的左、右、下、上边界。门板实际开料尺寸由边界、四周间隙和门框宽度共同计算。`opening` 首版支持 `drop_down` 和 `side_hinged`;必须同时给出合页边、合页数量、把手和闭合件。材料默认从本目录的 PC、亚克力或木板条目选择,不得只写“透明板”。
+
+## 10. 就绪判定
 
 - **草案**:数据或几何有错误,无法完成检查。
 - **待复核**:结构可表达,但仍有本目录编号、连接、加工、强度、载荷或稳定措施未确认。

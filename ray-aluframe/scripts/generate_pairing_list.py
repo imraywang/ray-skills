@@ -68,6 +68,13 @@ def _accessory_display(
 ) -> tuple[str, str]:
     category = str(item.get("category") or "")
     description = str(item.get("description") or "")
+    catalog_id = str(item.get("catalog_id") or item.get("catalog_kit_id") or "")
+    product = products.get(catalog_id) or {}
+    if category == "door_panel" and product:
+        return product["name"], f"本目录编号 {catalog_id}；按门框净尺寸逐块开料，厚 {product.get('thickness_mm')} mm"
+    if category in {"door_hinge", "door_handle", "door_catch"} and product:
+        fastener = product.get("fastener") or "固定方式随实物孔位复核"
+        return product["name"], f"本目录编号 {catalog_id}；{fastener}；{product.get('purchase_note', '')}".rstrip("；")
     if category == "caster":
         return "带刹车脚轮", "核对单轮额定载荷、安装板孔距、总高、轮径和刹车方式；至少两只带刹车"
     if category == "worktop":
