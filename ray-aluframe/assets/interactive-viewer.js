@@ -80,6 +80,14 @@
   const geometryCache = new Map();
   const memberObjects = new Map();
   const pickMeshes = [];
+  const steps = [
+    { name: '完整结构', copy: '查看所有型材、板材和五金。' },
+    { name: '第 1 步 · 底部框架', copy: '先拼装底部横梁，测量两条对角线并校方。' },
+    { name: '第 2 步 · 立柱', copy: '安装立柱，先临时拧紧，确认垂直。' },
+    { name: '第 3 步 · 各层横梁', copy: '从下往上安装横梁，每层再次核对对角线。' },
+    { name: '第 4 步 · 层板与背板', copy: '安装层板、背板和展示板，确认边缘固定点。' },
+    { name: '第 5 步 · 五金与复紧', copy: '安装底脚与剩余五金，空载复紧后逐步加载。' },
+  ];
 
   setupLighting();
   setupFloor();
@@ -597,15 +605,6 @@
       button.onclick = () => { state.hoverIds = new Set(ids); state.selected = ids[0]; renderSelection(); applyAppearance(); };
     });
   }
-
-  const steps = [
-    { name: '完整结构', copy: '查看所有型材、板材和五金。' },
-    { name: '第 1 步 · 底部框架', copy: '先拼装底部横梁，测量两条对角线并校方。' },
-    { name: '第 2 步 · 立柱', copy: '安装立柱，先临时拧紧，确认垂直。' },
-    { name: '第 3 步 · 各层横梁', copy: '从下往上安装横梁，每层再次核对对角线。' },
-    { name: '第 4 步 · 层板与背板', copy: '安装层板、背板和展示板，确认边缘固定点。' },
-    { name: '第 5 步 · 五金与复紧', copy: '安装底脚与剩余五金，空载复紧后逐步加载。' },
-  ];
 
   function renderAssembly() {
     const step = steps[state.step];
