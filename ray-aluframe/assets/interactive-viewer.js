@@ -57,7 +57,7 @@
   const pointer = new THREE.Vector2();
 
   const state = {
-    yaw: -Math.PI / 4,
+    yaw: Math.PI / 4,
     pitch: 0.34,
     distance: Math.max(2500, span * 1.12),
     selected: null,
@@ -75,10 +75,10 @@
     needsRender: true,
   };
   const presets = {
-    iso: [-Math.PI / 4, 0.34],
+    iso: [Math.PI / 4, 0.34],
     front: [Math.PI / 2, 0.02],
     side: [0, 0.02],
-    top: [-Math.PI / 2, Math.PI / 2 - 0.015],
+    top: [Math.PI / 2, Math.PI / 2 - 0.015],
   };
 
   const modelRoot = new THREE.Group();
@@ -129,7 +129,9 @@
   }
 
   function toWorld(point) {
-    return new THREE.Vector3(point[0], point[2], point[1]);
+    // Design +Y runs from the cabinet front toward the wall. Three.js cameras
+    // conventionally look from +Z toward -Z, so depth maps to negative world Z.
+    return new THREE.Vector3(point[0], point[2], -point[1]);
   }
 
   function memberLength(member) {
@@ -619,32 +621,33 @@
   function createShelfBracket(panel, x, designY, inwardSign, index) {
     const axes = panelBounds(panel);
     const shelfY = (axes[2][0] + axes[2][1]) / 2;
+    const worldInward = -inwardSign;
     const group = new THREE.Group();
-    group.position.set(x, shelfY - 9.5, designY + inwardSign * 16);
+    group.position.set(x, shelfY - 9.5, -designY + worldInward * 16);
 
     const horizontalPlate = new THREE.Mesh(new THREE.BoxGeometry(22, 3, 18), materials.bracket);
-    horizontalPlate.position.z = inwardSign * 8;
+    horizontalPlate.position.z = worldInward * 8;
     const verticalPlate = new THREE.Mesh(new THREE.BoxGeometry(22, 18, 3), materials.bracket);
     verticalPlate.position.set(0, -7.5, 0);
 
     const boardWasher = new THREE.Mesh(new THREE.CylinderGeometry(4.4, 4.4, 1, 16), materials.bracket);
-    boardWasher.position.set(0, 2, inwardSign * 8);
+    boardWasher.position.set(0, 2, worldInward * 8);
     const boardScrew = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 2.8, 3.2, 12), materials.bolt);
-    boardScrew.position.set(0, 3.4, inwardSign * 8);
+    boardScrew.position.set(0, 3.4, worldInward * 8);
 
     const profileWasher = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.4, 1.1, 18), materials.bracket);
     profileWasher.rotation.x = Math.PI / 2;
-    profileWasher.position.set(0, -7.5, inwardSign * 2.1);
+    profileWasher.position.set(0, -7.5, worldInward * 2.1);
     const profileBolt = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 3.2, 16), materials.bolt);
     profileBolt.rotation.x = Math.PI / 2;
-    profileBolt.position.set(0, -7.5, inwardSign * 3.7);
+    profileBolt.position.set(0, -7.5, worldInward * 3.7);
     const tNut = new THREE.Mesh(new THREE.BoxGeometry(15, 8, 2.8), materials.bolt);
-    tNut.position.set(0, -7.5, -inwardSign * 2.6);
+    tNut.position.set(0, -7.5, -worldInward * 2.6);
 
     const parts = [horizontalPlate, verticalPlate, boardWasher, boardScrew, profileWasher, profileBolt, tNut];
     parts.forEach((part) => { part.castShadow = true; part.receiveShadow = true; });
     const hitbox = new THREE.Mesh(new THREE.BoxGeometry(30, 28, 34), materials.pick);
-    hitbox.position.set(0, -4, inwardSign * 5);
+    hitbox.position.set(0, -4, worldInward * 5);
     group.add(...parts, hitbox);
     registerHardware([...parts, hitbox], {
       id: `SHELF-BRACKET-${panel.id}-${index + 1}`,
@@ -699,20 +702,20 @@
 
   function createPanelClip(panel, point, designY, index) {
     const group = new THREE.Group();
-    group.position.set(point.x, point.z, designY - 8);
+    group.position.set(point.x, point.z, -designY + 8);
     if (point.edge === 'left' || point.edge === 'right') group.rotation.z = Math.PI / 2;
 
     const plate = new THREE.Mesh(new THREE.BoxGeometry(24, 20, 3), materials.bracket);
     const returnLip = new THREE.Mesh(new THREE.BoxGeometry(5, 20, 7), materials.bracket);
-    returnLip.position.set(point.edge === 'top' || point.edge === 'right' ? -9.5 : 9.5, 0, 3.2);
+    returnLip.position.set(point.edge === 'top' || point.edge === 'right' ? -9.5 : 9.5, 0, -3.2);
     const washer = new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.4, 1.1, 18), materials.bracket);
     washer.rotation.x = Math.PI / 2;
-    washer.position.z = -2.1;
+    washer.position.z = 2.1;
     const bolt = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 3.2, 16), materials.bolt);
     bolt.rotation.x = Math.PI / 2;
-    bolt.position.z = -3.7;
+    bolt.position.z = 3.7;
     const tNut = new THREE.Mesh(new THREE.BoxGeometry(15, 8, 2.8), materials.bolt);
-    tNut.position.z = 2.7;
+    tNut.position.z = -2.7;
 
     const parts = [plate, returnLip, washer, bolt, tNut];
     parts.forEach((part) => { part.castShadow = true; part.receiveShadow = true; });

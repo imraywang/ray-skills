@@ -273,8 +273,8 @@ canvas.dragging {{ cursor: grabbing; }}
     </div>
     <div class="tool-group" role="group" aria-label="视角"><span class="tool-label">视角</span>
       <button class="tool-button" data-view="iso" aria-pressed="true">等轴</button>
-      <button class="tool-button" data-view="front" aria-pressed="false">正面</button>
-      <button class="tool-button" data-view="side" aria-pressed="false">侧面</button>
+      <button class="tool-button" data-view="front" aria-pressed="false">正面·柜门侧</button>
+      <button class="tool-button" data-view="side" aria-pressed="false">右侧</button>
       <button class="tool-button" data-view="top" aria-pressed="false">顶面</button>
     </div>
     <div class="tool-group" role="group" aria-label="显示内容"><span class="tool-label">显示</span>
@@ -295,7 +295,7 @@ canvas.dragging {{ cursor: grabbing; }}
       <canvas id="canvas" tabindex="0" aria-label="拖动旋转，滚轮缩放，点击型材或五金查看参数"></canvas>
       <div class="reference-layer" id="reference-layer" hidden><img id="reference-image" alt=""></div>
       <div class="reference-regions" id="reference-regions" hidden></div>
-      <div class="reference-note" id="reference-note" hidden>透明叠加只用于核对左右、分区和连续横梁，不用于从像素读取尺寸。</div>
+      <div class="reference-note" id="reference-note" hidden>当前从柜门侧看向洞洞板；透明叠加只用于核对左右、分区和连续横梁，不用于从像素读取尺寸。</div>
       <div class="dimensions" id="dimensions"></div>
       <p class="view-help">拖动旋转 · 滚轮缩放 · 点击型材或五金查看参数 · 方向键微调</p>
     </section>
