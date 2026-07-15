@@ -1,7 +1,31 @@
 {
-  "notice": "首版演示数据,不是跨厂商通用规格或采购推荐。惯性矩来自所列 MayTec 官方产品页;E、屈服强度、截面模量和连接件需另行确认。",
+  "notice": "首版演示数据,不是跨厂商通用规格或采购推荐。优先列出淘宝欧标槽8可对照的MISUMI HFS6参考,同时保留MayTec示例。不同厂商的槽宽、中心孔和连接件不得默认混用;E、屈服强度、截面模量和连接件需另行确认。",
   "verified_on": "2026-07-14",
   "profiles": [
+    {
+      "manufacturer": "MISUMI reference",
+      "part_number": "HFS6-3030",
+      "description": "30x30, 8 mm groove reference",
+      "width_mm": 30,
+      "height_mm": 30,
+      "weight_kg_m": 0.9,
+      "stock_length_mm": 4000,
+      "ix_mm4": 28300,
+      "iy_mm4": 28300,
+      "source_url": "https://jp.misumi-ec.com/vona2/detail/110302686450/"
+    },
+    {
+      "manufacturer": "MISUMI reference",
+      "part_number": "HFS6-3060",
+      "description": "30x60, 8 mm groove reference",
+      "width_mm": 30,
+      "height_mm": 60,
+      "weight_kg_m": 1.6,
+      "stock_length_mm": 4000,
+      "ix_mm4": 205600,
+      "iy_mm4": 53300,
+      "source_url": "https://jp.misumi-ec.com/vona2/detail/110311142279/"
+    },
     {
       "manufacturer": "MayTec",
       "part_number": "1.10.020020.43LP",

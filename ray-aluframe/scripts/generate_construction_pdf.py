@@ -229,7 +229,10 @@ def build_pdf(data: dict[str, Any], output: Path) -> None:
     story += [p("连接件", styles["h2"])]
     connector_rows = [["厂家", "货号", "名称", "数量", "状态"]]
     for (manufacturer, part, description), qty in sorted(result["connector_counts"].items()):
-        connector_name = {"multi-way corner/tee connection kit": "多向角部/三通连接组件"}.get(description, description)
+        connector_name = {
+            "multi-way corner/tee connection kit": "多向角部/三通连接组件",
+            "30-series slot-8 angle bracket set; P3060 beam end uses two brackets": "30 系列槽 8 角码套装；30x60 横梁每端双角码",
+        }.get(description, description)
         connector_rows.append([manufacturer if manufacturer and "TBD" not in manufacturer.upper() else "待确定", part if part and "TBD" not in part.upper() else "待确定", connector_name, str(qty), "待绑定商家" if "TBD" in part.upper() else "已指定"])
     if len(connector_rows) == 1:
         connector_rows.append(["待确定", "待确定", "未提供", "-", "缺失"])
@@ -237,13 +240,21 @@ def build_pdf(data: dict[str, Any], output: Path) -> None:
 
     story += [p("板材与附件", styles["h2"])]
     accessory_rows = [["类别", "名称", "数量", "货号", "状态"]]
-    category_names = {"backing": "背板", "foot": "底脚", "shelf": "层板"}
+    category_names = {"backing": "背板", "foot": "底脚", "shelf": "层板", "shelf_fastener": "层板固定", "panel_fastener": "面板固定", "appearance_optional": "外观选配"}
     accessory_names = {
         "left color-matched rigid back panel": "左侧同色刚性背板",
         "right display/peg board fixed around perimeter": "右侧展示/洞洞板（四周固定）",
         "adjustable foot": "调节脚",
         "left shelf panel about 600x350": "左侧层板，约 600x350",
         "right shelf panel about 1200x350": "右侧层板，约 1200x350",
+        "adjustable foot with base plate": "带连接板的调节脚",
+        "left wooden shelf panel about 600x350x18 with underside brackets": "左侧木层板，约 600x350x18，底部小角码固定",
+        "right wooden shelf panel about 1200x350x18 with underside brackets": "右侧木层板，约 1200x350x18，底部小角码固定",
+        "right display/peg board with perimeter panel holders": "右侧展示/洞洞板，周边面板夹固定",
+        "left color-matched rigid back panel with multi-point fixing": "左侧同色刚性背板，周边多点固定",
+        "underside shelf fixing bracket set": "层板底部固定小角码套装",
+        "back/display panel perimeter holder set": "背板/展示板周边固定夹套装",
+        "angle bracket cover, optional": "角码装饰盖，可选",
     }
     for (category, manufacturer, part, description), qty in sorted(result["accessory_counts"].items()):
         accessory_rows.append([category_names.get(category, category), accessory_names.get(description, description), str(qty), part if part and "TBD" not in part.upper() else "待确定", "待绑定商家" if "TBD" in part.upper() else "已指定"])

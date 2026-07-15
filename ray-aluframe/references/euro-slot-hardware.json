@@ -1,0 +1,192 @@
+{
+  "notice": "面向淘宝常见欧标类铝型材的选型参考，不代表不同商家之间自动兼容。下单前必须同时核对截面尺寸、实际槽口宽度、中心孔、螺栓和螺母规格。",
+  "verified_on": "2026-07-14",
+  "compatibility_keys": [
+    "profile_outer_size_mm",
+    "actual_slot_width_mm",
+    "center_bore_and_end_thread",
+    "t_nut_thread",
+    "bracket_bolt_diameter",
+    "profile_face_and_open_slot_count"
+  ],
+  "reference_ecosystems": [
+    {
+      "id": "EU30_SLOT8_REFERENCE",
+      "market_name": "欧标 30 系列 / 槽 8",
+      "official_reference": "MISUMI HFS6",
+      "profile_sizes_mm": [[30, 30], [30, 60]],
+      "actual_slot_width_mm": 8,
+      "common_bracket_fastener": "M6",
+      "notes": [
+        "适合作为淘宝 3030/3060 欧标槽 8 商品的比对基准。",
+        "MISUMI 的系列数字 6 不是槽宽；其 HFS6 实际槽宽为 8 mm。",
+        "淘宝商家仍需提供截面图和配套表，不能仅凭“欧标 3030”混购。"
+      ],
+      "source_url": "https://jp.misumi-ec.com/vona2/detail/110302686450/"
+    },
+    {
+      "id": "EU40_SLOT8_REFERENCE",
+      "market_name": "欧标 40 系列 / 槽 8",
+      "official_reference": "item Line 8",
+      "profile_sizes_mm": [[40, 40], [40, 80]],
+      "actual_slot_width_mm": 8,
+      "notes": [
+        "用于对照淘宝常见 4040/4080 槽 8 商品。",
+        "MISUMI HFS8 是 10 mm 槽，不能因名称含 8 就与 item Line 8 或淘宝槽 8 配件混用。"
+      ],
+      "source_url": "https://www.item24.com/en-ca/profile-8-40x40-1n-light-natural-42272"
+    }
+  ],
+  "connectors": [
+    {
+      "id": "C-ANGLE-STD-30S8",
+      "market_keywords": ["欧标3030角码", "槽8内置定位角件", "3030角件M6"],
+      "name": "外露直角角码",
+      "reference_part": "MISUMI HBLFSN6",
+      "compatible_reference": "EU30_SLOT8_REFERENCE",
+      "fasteners_per_piece": "2 x M6 socket screws + 2 x matching T nuts",
+      "profile_machining": "none",
+      "appearance": "visible",
+      "allowable_load_reference_n": 1176,
+      "load_note": "MISUMI 给出的单件参考值基于其规定安装和受力方式；淘宝同形产品不可直接继承该数值。",
+      "recommended_use": "普通层框、可调位置、个人装配首选",
+      "source_url": "https://jp.misumi-ec.com/vona2/detail/110300442340/"
+    },
+    {
+      "id": "C-ANGLE-HEAVY-30S8",
+      "market_keywords": ["3030强力角码", "3030加厚角件", "槽8厚角码"],
+      "name": "加厚直角角码",
+      "reference_part": "MISUMI HBLTS6",
+      "compatible_reference": "EU30_SLOT8_REFERENCE",
+      "fasteners_per_piece": "2 x M6 screws + 2 x matching T nuts",
+      "profile_machining": "none",
+      "appearance": "visible, larger than standard bracket",
+      "allowable_load_reference_n": 1176,
+      "load_note": "只作官方参考体系内的比较，淘宝产品需商家给出承载数据。",
+      "recommended_use": "长横梁端部、底框和更在意刚度的节点",
+      "source_url": "https://uk.misumi-ec.com/vona2/detail/110300443470/"
+    },
+    {
+      "id": "C-HIDDEN-SCREW-30S8",
+      "market_keywords": ["3030锚式连接件", "3030隐藏连接件", "端面攻丝连接"],
+      "name": "隐藏式螺钉连接",
+      "reference_part": "MISUMI HCJ6",
+      "compatible_reference": "EU30_SLOT8_REFERENCE",
+      "profile_machining": "end tapping plus wrench access hole",
+      "appearance": "hidden",
+      "recommended_use": "正面希望干净、不能露角码的位置",
+      "caution": "必须让商家按其连接件给出攻丝和扳手孔尺寸；改商家后加工尺寸可能变化。",
+      "source_url": "https://jp.misumi-ec.com/vona2/detail/110303065760/"
+    },
+    {
+      "id": "C-HIDDEN-SIMPLE-30S8",
+      "market_keywords": ["3030内置连接件", "3030端面连接", "简易隐藏连接件"],
+      "name": "隐藏式简易连接",
+      "reference_part": "MISUMI HUJ6",
+      "compatible_reference": "EU30_SLOT8_REFERENCE",
+      "profile_machining": "end tapping",
+      "appearance": "hidden",
+      "recommended_use": "外观优先的轻型节点",
+      "source_url": "https://jp.misumi-ec.com/vona2/detail/110302058370/"
+    },
+    {
+      "id": "C-CORNER-MULTIWAY-30S8",
+      "market_keywords": ["3030二通连接件", "3030三通角件", "3030角铝连接块"],
+      "name": "二向/三向角部连接块",
+      "reference_part": "MISUMI HBLCS6 / HBLCR6 / HBLCD6",
+      "compatible_reference": "EU30_SLOT8_REFERENCE",
+      "appearance": "compact corner block with cap",
+      "recommended_use": "顶框和底框外角，需要两到三个方向同时汇合的位置",
+      "source_url": "https://jp.misumi-ec.com/vona2/detail/110300445750/"
+    },
+    {
+      "id": "C-TNUT-M6-30S8",
+      "market_keywords": ["欧标槽8 M6 T型螺母", "3030后装弹片螺母", "3030滑块螺母M6"],
+      "name": "M6 槽螺母与螺栓",
+      "compatible_reference": "EU30_SLOT8_REFERENCE",
+      "recommended_use": "角码、层板夹、背板支座和后期增加附件",
+      "caution": "优先选可后装弹片螺母；螺栓长度要按角码厚度与有效啮合长度确认。",
+      "source_url": "https://us.misumi-ec.com/pdf/fa/2019/2019_US_2736.pdf"
+    }
+  ],
+  "leveling_feet": [
+    {
+      "id": "F-DIRECT-THREAD",
+      "market_keywords": ["3030调节脚", "铝型材脚杯", "M8 M10调平脚"],
+      "name": "端面直装调节脚",
+      "appearance": "clean",
+      "mounting": "threaded stem into profile center hole or threaded insert",
+      "recommended_use": "轻型柜架、外观简洁",
+      "caution": "必须向商家确认中心孔能攻什么螺纹或需要哪种螺纹套；M8/M10/M12 不可凭外观猜。"
+    },
+    {
+      "id": "F-BASE-PLATE",
+      "market_keywords": ["3030脚板", "铝型材脚座", "调节脚连接板"],
+      "name": "底脚连接板加调节脚",
+      "appearance": "visible plate",
+      "mounting": "plate fastened to profile slots, leveling stem through plate",
+      "recommended_use": "较高、较重、需要更大脚掌或更可靠安装的架子",
+      "official_reference": "MISUMI HAJPSSS6-12 leveling mount unit",
+      "source_url": "https://in.misumi-ec.com/vona2/detail/110300476370/"
+    },
+    {
+      "id": "F-ANCHORABLE-PLATE",
+      "market_keywords": ["铝型材地脚板", "可固定调节脚", "带安装孔脚杯"],
+      "name": "可落地固定的底脚板",
+      "appearance": "visible wide plate",
+      "recommended_use": "高窄架、设备架或允许地面固定的位置",
+      "caution": "是否能固定地面取决于现场，不应把宽脚板当作自动解决防倾倒。"
+    }
+  ],
+  "panel_mounting": [
+    {
+      "id": "P-GROOVE-CLAMP",
+      "market_keywords": ["槽8嵌条", "3030板材密封条", "铝型材面板压条"],
+      "name": "面板插槽加压条",
+      "compatible_reference": "EU30_SLOT8_REFERENCE",
+      "reference_panel_thickness_mm": 5,
+      "appearance": "cleanest",
+      "assembly": "panel inserted while frame is assembled, elastomer clamp fills the gap",
+      "recommended_use": "5 mm 亚克力、薄木板或封板",
+      "source_url": "https://us.misumi-ec.com/vona2/detail/110302263040/?HissuCode=HSCP3H-S-6"
+    },
+    {
+      "id": "P-POST-INSTALL-HOLDER",
+      "market_keywords": ["铝型材后装面板夹", "槽8面板固定块", "3030玻璃夹"],
+      "name": "后装面板夹/面板固定块",
+      "compatible_reference": "EU30_SLOT8_REFERENCE",
+      "appearance": "small clips visible at perimeter",
+      "assembly": "install or replace panel after frame assembly",
+      "recommended_use": "背板、展示板、需要以后拆换的面板",
+      "source_url": "https://jp.misumi-ec.com/vona2/detail/110303061830/"
+    },
+    {
+      "id": "P-BRACKET-UNDER-SHELF",
+      "market_keywords": ["铝型材层板角码", "槽8层板托", "T型螺母层板固定"],
+      "name": "层板底部小角码固定",
+      "appearance": "mostly hidden below shelf",
+      "assembly": "small brackets connect to T nuts; wood shelf uses suitable underside screws, metal/plastic shelf uses through fasteners as appropriate",
+      "recommended_use": "本项目的木质书架层板",
+      "caution": "木板不能使用过长螺钉；薄板应改用穿透螺栓、压板或专用夹。"
+    },
+    {
+      "id": "P-TAPPED-BRACKET",
+      "market_keywords": ["带攻丝角码固定面板", "角码M5面板孔", "铝型材背板固定"],
+      "name": "带面板孔的结构角码",
+      "reference_part": "MISUMI HBLFSN6-C-SET",
+      "appearance": "fastener heads visible on panel",
+      "assembly": "panel is screwed to tapped holes added to the structural brackets",
+      "recommended_use": "背板兼顾防侧摆并希望减少额外固定块",
+      "source_url": "https://us.misumi-ec.com/maker/misumi/mech/product/al/howto/"
+    },
+    {
+      "id": "P-FENCE-EXTRUSION",
+      "market_keywords": ["面板包边型材", "围栏嵌板型材", "铝型材封板边框"],
+      "name": "专用面板包边型材",
+      "appearance": "most finished",
+      "assembly": "panel is enclosed by dedicated edge profiles, then the panel frame is attached to the main structure",
+      "recommended_use": "正式围挡、门板或频繁拆装的面板",
+      "source_url": "https://it.misumi-ec.com/files/images/products/docs/framingsupport.pdf"
+    }
+  ]
+}
