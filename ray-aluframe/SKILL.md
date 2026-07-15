@@ -94,6 +94,7 @@ python3 <skill-dir>/scripts/query_product_catalog.py --kind kit --series 30
 python3 <skill-dir>/scripts/check_frame.py design.json --report report.md
 python3 <skill-dir>/scripts/render_frame_svg.py design.json --output preview.svg
 python3 <skill-dir>/scripts/render_assembly_svg.py design.json --output assembly-preview.svg
+python3 <skill-dir>/scripts/render_interactive_html.py design.json --output interactive-preview.html
 python3 <skill-dir>/scripts/generate_construction_pdf.py design.json --output construction-report.pdf
 python3 <skill-dir>/scripts/generate_pairing_list.py design.json --output pairing-list.md
 ```
@@ -110,7 +111,9 @@ python3 <skill-dir>/scripts/generate_pairing_list.py design.json --output pairin
 - 把型材、角码、螺栓、槽螺母、底脚和板材固定件合并为一张直观搭配清单
 - 判定当前是“草案”“待复核”还是“可询价”
 
-预览图用于让小白核对构件位置和整体比例,不是加工图。生成后实际打开检查,确认没有漏杆、错层或标签遮挡;用户确认预览后再整理询价包。
+优先把 `interactive-preview.html` 交给用户确认方案。它可以拖动旋转、滚轮缩放、切换正面/侧面/顶面、隐藏层板或五金、点击构件看规格、从下料汇总反查构件,并逐步查看装配顺序。文件包含当前方案和本地目录参数,可单独打开,不依赖外部网站。生成后必须用真实浏览器检查视角切换、构件选择、清单联动、装配步骤和窄屏显示。
+
+SVG 预览图继续用于聊天内快速查看和文档插图。所有预览都只用于让小白核对构件位置和整体比例,不是加工图。确认没有漏杆、错层、遮挡或交互失效后,再让用户确认方案并整理询价包。
 
 用户希望“接近实际效果”时,在设计清单的 `visuals` 中补层板、背板/展示板和调节脚,再生成装配效果图。装配效果图用银色带槽型材、节点五金、板材和底脚表达材料关系;它不是照片,不得据此判断颜色、表面缺陷或连接件精确外形。效果图里的每个附件必须在采购清单中有对应条目。
 
