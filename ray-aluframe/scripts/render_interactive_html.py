@@ -90,6 +90,9 @@ def _payload(data: dict[str, Any]) -> dict[str, Any]:
 def html_document(payload: dict[str, Any]) -> str:
     encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     title = str(payload["design"].get("project", {}).get("name") or "铝型材交互预览")
+    asset_dir = Path(__file__).resolve().parent.parent / "assets"
+    three_runtime = (asset_dir / "three-runtime.min.js").read_text(encoding="utf-8").replace("</", "<\\/")
+    viewer_runtime = (asset_dir / "interactive-viewer.js").read_text(encoding="utf-8").replace("</", "<\\/")
     return f'''<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -140,12 +143,12 @@ h1 {{ margin: 0; font-size: clamp(1.35rem,2.2vw,2.25rem); line-height: 1.1; lett
 .toggle {{ min-height: 42px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 0 4px; }}
 .toggle input {{ width: 18px; height: 18px; accent-color: var(--blue); }}
 .workspace {{ min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(320px,390px); }}
-.viewer {{ position: relative; min-height: 560px; overflow: hidden; background: oklch(94% .012 248); }}
-.viewer::before {{ content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .45; background-image: linear-gradient(var(--line) 1px,transparent 1px), linear-gradient(90deg,var(--line) 1px,transparent 1px); background-size: 28px 28px; mask-image: linear-gradient(to bottom,black,transparent 82%); }}
+.viewer {{ position: relative; min-height: 560px; overflow: hidden; background: #202428; }}
+.viewer::before {{ content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(circle at 54% 40%,transparent 38%,rgba(0,0,0,.22) 100%); }}
 canvas {{ position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }}
 canvas.dragging {{ cursor: grabbing; }}
-.view-help {{ position: absolute; left: 18px; bottom: 16px; margin: 0; color: var(--muted); font-size: .8rem; background: var(--surface); border: 1px solid var(--line); padding: 8px 11px; }}
-.dimensions {{ position: absolute; top: 16px; left: 18px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 36px); pointer-events: none; }}
+.view-help {{ position: absolute; z-index: 2; left: 18px; bottom: 16px; margin: 0; color: var(--muted); font-size: .8rem; background: var(--surface); border: 1px solid var(--line); padding: 8px 11px; }}
+.dimensions {{ position: absolute; z-index: 2; top: 16px; left: 18px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 36px); pointer-events: none; }}
 .dimension {{ padding: 6px 9px; background: var(--surface); border: 1px solid var(--line); font-size: .78rem; font-variant-numeric: tabular-nums; box-shadow: 0 5px 18px oklch(29% .03 248 / .08); }}
 .inspector {{ min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr); background: var(--surface); border-left: 1px solid var(--line); }}
 .selection {{ padding: 22px 22px 18px; border-bottom: 1px solid var(--line); }}
@@ -212,7 +215,7 @@ canvas.dragging {{ cursor: grabbing; }}
     <div class="tool-group" role="group" aria-label="显示模式"><span class="tool-label">模式</span>
       <button class="tool-button" data-mode="structure" aria-pressed="false">结构</button>
       <button class="tool-button" data-mode="realistic" aria-pressed="true">真实</button>
-      <span class="mode-note" id="mode-note">通用件外观</span>
+      <span class="mode-note" id="mode-note">真实槽口三维型材</span>
     </div>
     <div class="tool-group" role="group" aria-label="视角"><span class="tool-label">视角</span>
       <button class="tool-button" data-view="iso" aria-pressed="true">等轴</button>
@@ -251,7 +254,7 @@ canvas.dragging {{ cursor: grabbing; }}
   </section>
 </main>
 <script id="payload" type="application/json">{encoded}</script>
-<script>
+<script type="text/plain" id="legacy-viewer">
 const payload = JSON.parse(document.getElementById('payload').textContent);
 const design = payload.design;
 const members = design.members || [];
@@ -521,6 +524,8 @@ new ResizeObserver(draw).observe(canvas.parentElement);
 document.getElementById('dimensions').innerHTML=[`宽 ${{envelope[0]}} mm`,`深 ${{envelope[1]}} mm`,`高 ${{envelope[2]}} mm`].map(x=>`<span class="dimension">${{x}}</span>`).join('');
 renderSelection();renderMembers();renderBom();renderAssembly();renderIssues();draw();
 </script>
+<script>{three_runtime}</script>
+<script>{viewer_runtime}</script>
 </body>
 </html>'''
 
