@@ -22,7 +22,7 @@
 
 ## 2. 当前覆盖
 
-- 143 个型材和光轴外形规格
+- 202 个型材和光轴规格,其中 59 个来自建恩铝业已保存商品页
 - 2020、2040、3030、3060、3090、4040、4080 共 7 个常用参考截面带米重和惯性参数
 - 20 系槽 6 / M5 完整节点、层板、面板和底脚套装
 - 30 系槽 8 / M6 完整节点、层板、面板和底脚套装
@@ -36,9 +36,12 @@
 
 - `geometry_and_engineering_reference`:有外形、槽系、米重和惯性参考,可做初步变形比较。
 - `geometry_only`:只有外形和槽系,不能参与承重计算。
+- `supplier_geometry_and_mass`:有供应商原始型号、壁厚和米重,可用于采购筛选、整架重量和长度估算;没有惯性参数时不能参与承重计算。
 - `complete kit`:角码、螺栓、槽螺母及可选装饰盖已经形成完整组合。
 
 轻型参考截面值只代表目录中的参考截面等级。用户拿到商家的截面图或检测参数后,应以实际商品覆盖参考值。
+
+建恩铝业数据覆盖截图第 2 至 60 页,共 59 个型号。整支长度统一记录为 6100 mm;商品页已显示的价格按元/米保存并计算整支参考价,没有显示出的价格保持为空。商家自定义后缀原样保留,在连接件适配没有实物验证前不自动绑定通用套装。
 
 ## 4. 配套规则
 
@@ -62,6 +65,7 @@
 ```bash
 python3 scripts/validate_product_catalog.py
 python3 scripts/query_product_catalog.py 3030 --kind profile --slot 8
+python3 scripts/query_product_catalog.py 4040 --kind profile --supplier 建恩
 python3 scripts/query_product_catalog.py --kind kit --series 30
 ```
 

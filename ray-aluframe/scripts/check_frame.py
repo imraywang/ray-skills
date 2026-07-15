@@ -41,7 +41,17 @@ def hydrate_profiles(entries: list[dict[str, Any]], catalog: dict[str, Any]) -> 
                 profile["catalog_id"] = catalog_id
         reference = catalog_profiles.get(catalog_id)
         if reference:
-            for key in ("width_mm", "height_mm", "slot_width_mm", "slot_depth_mm"):
+            for key in (
+                "width_mm",
+                "height_mm",
+                "slot_width_mm",
+                "slot_depth_mm",
+                "wall_thickness_mm",
+                "weight_kg_m",
+                "supplier_id",
+                "vendor_name",
+                "price_cny_per_m",
+            ):
                 if profile.get(key) is None:
                     profile[key] = reference.get(key)
             profile.setdefault("part_number", reference.get("designation"))

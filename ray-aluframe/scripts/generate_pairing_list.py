@@ -46,6 +46,8 @@ def _profile_slot_width(profile: dict[str, Any]) -> int | None:
 
 
 def _find_system(profile: dict[str, Any], systems: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if profile.get("supplier_id") and not profile.get("system_id"):
+        return None
     width, height = _profile_spec(profile)
     slot_width = _profile_slot_width(profile)
     for system in systems:
@@ -111,7 +113,20 @@ def generate(design: dict[str, Any], catalog: dict[str, Any]) -> str:
     for entry in design.get("profiles", []):
         profile = dict(entry)
         reference = catalog_profiles_by_id.get(profile.get("catalog_id")) or {}
-        for key in ("width_mm", "height_mm", "slot_width_mm", "slot_depth_mm", "series"):
+        for key in (
+            "width_mm",
+            "height_mm",
+            "slot_width_mm",
+            "slot_depth_mm",
+            "series",
+            "system_id",
+            "supplier_id",
+            "vendor_name",
+            "designation",
+            "weight_kg_m",
+            "wall_thickness_mm",
+            "price_cny_per_m",
+        ):
             if profile.get(key) is None and reference.get(key) is not None:
                 profile[key] = reference[key]
         profiles[profile["id"]] = profile
@@ -137,9 +152,11 @@ def generate(design: dict[str, Any], catalog: dict[str, Any]) -> str:
         width, height = _profile_spec(profile)
         system = _find_system(profile, systems)
         system_name = system["name"] if system else "未形成自动配套"
-        designation = f"{width}{height}"
-        catalog_id = catalog_profiles.get(designation, {}).get("id", f"RAF-P-{designation}")
-        lines.append(f"| {catalog_id} | {designation} 型材 | {length} mm | {qty} 根 | {system_name} |")
+        designation = str(profile.get("designation") or f"{width}{height}")
+        reference = catalog_profiles_by_id.get(profile.get("catalog_id")) or catalog_profiles.get(designation, {})
+        catalog_id = reference.get("id", f"RAF-P-{designation}")
+        purchase_name = reference.get("vendor_name") or reference.get("name") or f"{designation} 型材"
+        lines.append(f"| {catalog_id} | {purchase_name} | {length} mm | {qty} 根 | {system_name} |")
 
     angle_count = sum(int((joint.get("connector") or {}).get("qty") or 0) for joint in design.get("joints", []))
     lines += ["", "## 连接紧固件", ""]

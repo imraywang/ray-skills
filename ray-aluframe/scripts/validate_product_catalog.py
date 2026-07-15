@@ -12,7 +12,13 @@ CATALOG = Path(__file__).resolve().parents[1] / "references" / "product-catalog.
 
 def main() -> int:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
-    groups = [catalog.get("systems", []), catalog.get("profiles", []), catalog.get("products", []), catalog.get("kits", [])]
+    groups = [
+        catalog.get("suppliers", []),
+        catalog.get("systems", []),
+        catalog.get("profiles", []),
+        catalog.get("products", []),
+        catalog.get("kits", []),
+    ]
     ids = [item["id"] for group in groups for item in group]
     errors: list[str] = []
     if len(ids) != len(set(ids)):
@@ -20,6 +26,7 @@ def main() -> int:
     product_ids = {item["id"] for item in catalog.get("products", [])}
     kit_ids = {item["id"] for item in catalog.get("kits", [])}
     profile_ids = {item["id"] for item in catalog.get("profiles", [])}
+    supplier_ids = {item["id"] for item in catalog.get("suppliers", [])}
 
     for kit in catalog.get("kits", []):
         for component in kit.get("components", []):
@@ -45,12 +52,58 @@ def main() -> int:
     if engineering_count != catalog.get("coverage", {}).get("engineering_reference_profiles"):
         errors.append("带计算参数的型材数量与覆盖摘要不一致")
 
+    supplier_profiles = [item for item in catalog.get("profiles", []) if item.get("supplier_id")]
+    if len(supplier_profiles) != catalog.get("coverage", {}).get("supplier_profiles"):
+        errors.append("供应商型材数量与覆盖摘要不一致")
+    source_snapshots: set[tuple[str, str]] = set()
+    for profile in supplier_profiles:
+        prefix = profile["id"]
+        if profile.get("supplier_id") not in supplier_ids:
+            errors.append(f"{prefix}: 供应商编号无效")
+        if float(profile.get("wall_thickness_mm") or 0) <= 0:
+            errors.append(f"{prefix}: 壁厚无效")
+        if float(profile.get("weight_kg_m") or 0) <= 0:
+            errors.append(f"{prefix}: 米重无效")
+        if profile.get("stock_length_options_mm") != [6100]:
+            errors.append(f"{prefix}: 整支长度不是 6100 mm")
+        expected_weight = round(float(profile["weight_kg_m"]) * 6.1, 3)
+        if profile.get("full_stick_weight_kg") != expected_weight:
+            errors.append(f"{prefix}: 整支重量计算不一致")
+        price = profile.get("price_cny_per_m")
+        if price is not None:
+            if profile.get("price_unit") != "CNY_per_meter":
+                errors.append(f"{prefix}: 价格单位不是元/米")
+            if profile.get("full_stick_price_cny") != round(float(price) * 6.1, 2):
+                errors.append(f"{prefix}: 整支价格计算不一致")
+            if profile.get("price_status") != "captured":
+                errors.append(f"{prefix}: 已记录价格但状态不正确")
+        elif profile.get("full_stick_price_cny") is not None:
+            errors.append(f"{prefix}: 无米价却存在整支价格")
+        if profile.get("engineering_reference") is not None:
+            errors.append(f"{prefix}: 供应商页没有惯性参数，不应标记为承载参考")
+        if profile.get("engineering_use") != "not_for_load_calculation":
+            errors.append(f"{prefix}: 缺少不得用于承载计算的限制")
+        source_snapshot = profile.get("source_snapshot")
+        if not source_snapshot or not profile.get("source_page"):
+            errors.append(f"{prefix}: 缺少来源页")
+        else:
+            source_key = (str(profile.get("supplier_id") or ""), str(source_snapshot))
+            if source_key in source_snapshots:
+                errors.append(f"{prefix}: 来源图片重复 {source_snapshot}")
+            else:
+                source_snapshots.add(source_key)
+    for supplier in catalog.get("suppliers", []):
+        expected = int(supplier.get("source_snapshot_count") or 0)
+        actual = sum(profile.get("supplier_id") == supplier["id"] for profile in supplier_profiles)
+        if expected != actual:
+            errors.append(f"{supplier['id']}: 商品页数量 {expected} 与型号数量 {actual} 不一致")
+
     if errors:
         for error in errors:
             print(f"ERROR: {error}")
         return 1
     print(
-        f"OK: {len(catalog['profiles'])} 型材/光轴，{len(catalog['products'])} 标准配件，"
+        f"OK: {len(catalog['profiles'])} 型材/光轴（含 {len(supplier_profiles)} 个供应商型号），{len(catalog['products'])} 标准配件，"
         f"{len(catalog['kits'])} 完整套装，{len(catalog['systems'])} 个默认体系"
     )
     return 0
