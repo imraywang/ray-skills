@@ -19,6 +19,7 @@
   const envelope = bounds.map(([minimum, maximum]) => Math.round(maximum - minimum));
   const designCenter = bounds.map(([minimum, maximum]) => (minimum + maximum) / 2);
   const worldCenter = toWorld(designCenter);
+  const cameraTarget = worldCenter.clone();
   const span = Math.hypot(envelope[0], envelope[1], envelope[2]);
 
   const canvas = document.getElementById('canvas');
@@ -43,7 +44,6 @@
   const camera = new THREE.PerspectiveCamera(42, 1, 5, Math.max(20000, span * 12));
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  const clock = new THREE.Clock();
 
   const state = {
     yaw: -Math.PI / 4,
@@ -87,6 +87,7 @@
   buildPanels();
   buildHardware();
   buildDimensions();
+  fitCameraToModel();
   setupPage();
   updateCamera(true);
   try {
@@ -507,6 +508,16 @@
     return false;
   }
 
+  function fitCameraToModel() {
+    modelRoot.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(modelRoot);
+    if (box.isEmpty()) return;
+    const sphere = box.getBoundingSphere(new THREE.Sphere());
+    cameraTarget.copy(sphere.center);
+    const halfFov = THREE.MathUtils.degToRad(camera.fov * 0.5);
+    state.distance = Math.max(1200, (sphere.radius / Math.sin(halfFov)) * 1.18);
+  }
+
   function applyAppearance() {
     memberObjects.forEach(({ mesh, edges, member }, id) => {
       const highlighted = state.selected === id || state.hoverIds.has(id);
@@ -715,22 +726,29 @@
 
   function resize() {
     const rect = canvas.getBoundingClientRect();
-    const width = Math.max(1, Math.round(rect.width));
-    const height = Math.max(1, Math.round(rect.height));
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    requestDraw();
+    const width = Math.max(1, Math.round(rect.width || canvas.parentElement?.clientWidth || window.innerWidth || 1));
+    const height = Math.max(1, Math.round(rect.height || canvas.parentElement?.clientHeight || window.innerHeight || 1));
+    const pixelRatio = renderer.getPixelRatio();
+    const expectedWidth = Math.round(width * pixelRatio);
+    const expectedHeight = Math.round(height * pixelRatio);
+    if (canvas.width !== expectedWidth || canvas.height !== expectedHeight) {
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      requestDraw();
+      return true;
+    }
+    return false;
   }
 
   function updateCamera(initial = false) {
     const horizontal = Math.cos(state.pitch) * state.distance;
     camera.position.set(
-      worldCenter.x + Math.cos(state.yaw) * horizontal,
-      worldCenter.y + Math.sin(state.pitch) * state.distance,
-      worldCenter.z + Math.sin(state.yaw) * horizontal,
+      cameraTarget.x + Math.cos(state.yaw) * horizontal,
+      cameraTarget.y + Math.sin(state.pitch) * state.distance,
+      cameraTarget.z + Math.sin(state.yaw) * horizontal,
     );
-    camera.lookAt(worldCenter);
+    camera.lookAt(cameraTarget);
     if (initial) resize();
     requestDraw();
   }
@@ -754,9 +772,7 @@
 
   function animate() {
     requestAnimationFrame(animate);
-    const elapsed = clock.getElapsedTime();
-    if (state.needsRender || state.dragging || elapsed < 1.2) {
-      drawNow();
-    }
+    resize();
+    drawNow();
   }
 })();
