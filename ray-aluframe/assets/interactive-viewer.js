@@ -88,9 +88,18 @@
   buildHardware();
   buildDimensions();
   setupPage();
-  setupControls();
   updateCamera(true);
-  requestDraw();
+  try {
+    drawNow();
+    animate();
+  } catch (error) {
+    showRenderFailure(error);
+  }
+  try {
+    setupControls();
+  } catch (error) {
+    console.error('Preview controls failed to initialize', error);
+  }
 
   function toWorld(point) {
     return new THREE.Vector3(point[0], point[2], point[1]);
@@ -697,7 +706,11 @@
       if (event.key === 'ArrowDown') state.pitch = Math.max(-Math.PI / 2 + 0.03, state.pitch - 0.06);
       updateCamera();
     });
-    new ResizeObserver(resize).observe(canvas.parentElement);
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(resize).observe(canvas.parentElement);
+    } else {
+      window.addEventListener('resize', resize);
+    }
   }
 
   function resize() {
@@ -726,13 +739,24 @@
     state.needsRender = true;
   }
 
+  function showRenderFailure(error) {
+    console.error('3D preview failed to render', error);
+    const notice = document.createElement('div');
+    notice.className = 'render-failure';
+    notice.innerHTML = '<strong>三维预览未能启动</strong><span>请重新打开此文件；如果仍然失败，请把这条提示截图发回来。</span>';
+    canvas.parentElement.appendChild(notice);
+  }
+
+  function drawNow() {
+    renderer.render(scene, camera);
+    state.needsRender = false;
+  }
+
   function animate() {
     requestAnimationFrame(animate);
     const elapsed = clock.getElapsedTime();
     if (state.needsRender || state.dragging || elapsed < 1.2) {
-      renderer.render(scene, camera);
-      state.needsRender = false;
+      drawNow();
     }
   }
-  animate();
 })();

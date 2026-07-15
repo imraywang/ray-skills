@@ -150,6 +150,8 @@ canvas.dragging {{ cursor: grabbing; }}
 .view-help {{ position: absolute; z-index: 2; left: 18px; bottom: 16px; margin: 0; color: var(--muted); font-size: .8rem; background: var(--surface); border: 1px solid var(--line); padding: 8px 11px; }}
 .dimensions {{ position: absolute; z-index: 2; top: 16px; left: 18px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 36px); pointer-events: none; }}
 .dimension {{ padding: 6px 9px; background: var(--surface); border: 1px solid var(--line); font-size: .78rem; font-variant-numeric: tabular-nums; box-shadow: 0 5px 18px oklch(29% .03 248 / .08); }}
+.render-failure {{ position: absolute; z-index: 4; inset: 50% auto auto 50%; translate: -50% -50%; width: min(420px,calc(100% - 36px)); padding: 18px 20px; display: grid; gap: 6px; color: #fff; background: #762d20; border: 1px solid #ff9b72; box-shadow: 0 18px 60px rgba(0,0,0,.35); }}
+.render-failure span {{ color: #ffe3d8; font-size: .86rem; }}
 .inspector {{ min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr); background: var(--surface); border-left: 1px solid var(--line); }}
 .selection {{ padding: 22px 22px 18px; border-bottom: 1px solid var(--line); }}
 .selection-kicker {{ margin: 0 0 6px; color: var(--blue); font-size: .75rem; font-weight: 800; letter-spacing: .11em; }}
