@@ -1,0 +1,4 @@
+interface:
+  display_name: "铝型材框架设计"
+  short_description: "将参考图或模糊想法变成可核对、可询价的铝型材完整方案"
+  default_prompt: "Use $ray-aluframe to turn my frame idea into a checked design, cut list, parts list, and assembly plan."
