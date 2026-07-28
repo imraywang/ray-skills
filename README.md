@@ -4,6 +4,8 @@ Ray 的一些奇思妙想 Skill 集。
 
 这里收录从真实问题出发做成的独立 Skill。每个 Skill 单独占一个目录，可以按需使用，不依赖统一入口。
 
+其中 `ray-benchmark`、`ray-launch`、`ray-metrics`、`ray-report`、`ray-vps` 来自 [rayskills](https://github.com/imraywang/rayskills) v3 精简（2026-07-28）：方法论和 eval 场景完整保留，只是日常使用频率不高，从主工具箱移到这里按需取用。
+
 ## 现有 Skill
 
 ### ray-aluframe
@@ -21,11 +23,36 @@ Ray 的一些奇思妙想 Skill 集。
 
 详情见 [ray-aluframe/SKILL.md](ray-aluframe/SKILL.md)。
 
+### ray-benchmark
+
+拆一个对标对象（账号 / 产品 / 公司 / 赛道）：先过五重过滤劝退学不会的对象，再拆产品形态、定价变现、增长引擎和护城河，严格区分“因机制成功（能抄）”与“因禀赋成功（抄不来）”。详情见 [ray-benchmark/SKILL.md](ray-benchmark/SKILL.md)。
+
+### ray-launch
+
+把写好的落地页 / 官网 / B2B 询盘站从“代码就绪”带到“线上可访问、SEO 就绪、数据流通、可交接”：Vercel 部署、域名 DNS、ISR 数据流、表单询盘链路与真机验证。详情见 [ray-launch/SKILL.md](ray-launch/SKILL.md)。
+
+### ray-metrics
+
+X 账号数据周报：周环比、top / bottom 内容、可复现的传播规律与下周动作。详情见 [ray-metrics/SKILL.md](ray-metrics/SKILL.md)。
+
+### ray-report
+
+magazine 风格的 HTML / PDF 深度报告与公众号长报告，自带设计系统与印刷 CSS，不做成霓虹 SaaS dashboard。详情见 [ray-report/SKILL.md](ray-report/SKILL.md)。
+
+### ray-vps
+
+VPS 开荒（加固、代理栈、防火墙、验证与交接）与节点巡检（`check` 模式只读不改）。详情见 [ray-vps/SKILL.md](ray-vps/SKILL.md)。
+
 ## 目录约定
 
 ```text
 ray-skills/
 ├── ray-aluframe/
+├── ray-benchmark/
+├── ray-launch/
+├── ray-metrics/
+├── ray-report/
+├── ray-vps/
 └── 未来的其他 Skill/
 ```
 
