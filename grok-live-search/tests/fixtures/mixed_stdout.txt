@@ -1,0 +1,49 @@
+I'll search official sources and one discussion cluster.
+
+```json
+{
+  "summary": [
+    "The official docs identify the product and the canonical repository.",
+    "A community thread discusses install friction but does not contradict the official identity."
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "platform": "web",
+      "source_kind": "primary",
+      "title_or_excerpt": "Official documentation",
+      "author": "example-team",
+      "claimed_publication_time": "2026-08-13T00:00:00Z",
+      "date_evidence": "source_page",
+      "direct_url": "https://docs.example.com/harness",
+      "evidence_summary": "Canonical product page and repository link."
+    },
+    {
+      "id": "F2",
+      "platform": "reddit",
+      "source_kind": "community_post",
+      "title_or_excerpt": "Install notes",
+      "author": "user123",
+      "claimed_publication_time": "unverified",
+      "date_evidence": "snippet",
+      "direct_url": "https://www.reddit.com/r/machinelearning/comments/abc123/install_notes",
+      "evidence_summary": "Users report the official CLI path."
+    }
+  ],
+  "cross_checks": [
+    {
+      "finding_ids": ["F1"],
+      "stance": "supports",
+      "source_url": "https://github.com/example/harness",
+      "summary": "Repository matches the official docs."
+    }
+  ],
+  "limitations": [
+    "Search coverage is not exhaustive."
+  ]
+}
+```
+
+A later nested fragment that must not win:
+
+{"finding_ids": ["F1"], "stance": "context", "source_url": "https://news.example.com/reprint", "summary": "SEO reprint"}

@@ -8,6 +8,14 @@ Ray 的一些奇思妙想 Skill 集。
 
 ## 现有 Skill
 
+### grok-live-search
+
+用本机官方 Grok CLI 做 X / Reddit / 网页实时检索。运行时跟随当前默认模型，不写死 `grok-4.5`。一次安装后同时给 Codex、Claude Code 和通用 Agent 用。详情见 [grok-live-search/README.md](grok-live-search/README.md)。
+
+```bash
+bash grok-live-search/install.sh
+```
+
 ### ray-aluframe
 
 帮助个人玩家和小工作室把铝型材架子的想法或参考图，整理成可核对、可询价的结构方案，包括：
@@ -47,6 +55,7 @@ VPS 开荒（加固、代理栈、防火墙、验证与交接）与节点巡检�
 
 ```text
 ray-skills/
+├── grok-live-search/
 ├── ray-aluframe/
 ├── ray-benchmark/
 ├── ray-launch/

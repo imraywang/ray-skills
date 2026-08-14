@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grok Live Search"
+  short_description: "Current-model Grok X, Reddit, and web research."
+  default_prompt: "Use $grok-live-search from Codex, Claude Code, or a generic agent for current X or Reddit content. Leave --model unset so the wrapper follows the current Grok default. Use --depth standard for a multi-part research brief; use deep only when the user asks to verify or go exhaustive."
