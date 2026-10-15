@@ -4,7 +4,13 @@ Ray 的一些奇思妙想 Skill 集。
 
 这里收录从真实问题出发做成的独立 Skill。每个 Skill 单独占一个目录，可以按需使用，不依赖统一入口。
 
-其中 `ray-benchmark`、`ray-launch`、`ray-metrics`、`ray-report`、`ray-vps` 来自 [rayskills](https://github.com/imraywang/rayskills) v3 精简（2026-07-28）：方法论和 eval 场景完整保留，只是日常使用频率不高，从主工具箱移到这里按需取用。
+仓库地址：[GitHub](https://github.com/imraywang/ray-skills) · [Gitee（国内镜像，同步更新）](https://gitee.com/imraywang/ray-skills)。国内访问 GitHub 慢时：
+
+```bash
+git clone https://gitee.com/imraywang/ray-skills.git
+```
+
+其中 `ray-benchmark`、`ray-launch`、`ray-metrics`、`ray-report`、`ray-vps` 来自 [rayskills](https://github.com/imraywang/rayskills)（[Gitee](https://gitee.com/imraywang/rayskills)）v3 精简（2026-07-28）：方法论和 eval 场景完整保留，只是日常使用频率不高，从主工具箱移到这里按需取用。
 
 `ray-broll`、`ray-consult`、`ray-multimodel`、`ray-trend-search` 来自 rayskills v4 精简（2026-10-13），原因同样是使用频率低；方法论、脚本和 eval 场景完整保留，已与 rayskills 的 `/ray` 总入口解耦，原来指向 ray-writer / ray-kb 等的交接改为“装了 rayskills 才用”的可选项。
 
